@@ -17,16 +17,15 @@ $.fn.serializeObject = function()
 };
 
 function load () {
-  // Define form object as a variable
-  var form = $(".new-song-form");
   var content = $(".site-content");
   var addTrackBtn = $(".add-new-track");
-
-  console.log("Hello", content);
+  var form;
 
   // Initiate Hoodie
   var hoodie = new Hoodie();
   hoodie.store.findAll("track").done(allTracks);
+
+  addTrackBtn.click(newTrack);
 
   function allTracks (tracks) {
     console.log(tracks);
@@ -39,7 +38,8 @@ function load () {
   function onSubmit (submit){
     // Prevents page from doing default submit action
     submit.preventDefault();
-    
+    console.log("Hello", submit)
+
     // Define formData variable which is a jSON object created from
     // form objects with names attributes
     var formData = form.serializeObject();
@@ -48,7 +48,6 @@ function load () {
     var type = 'track';
 
     hoodie.store.add(type, formData).done(dataSaved);
-    console.log(formData);
 
     // Return false, beacuse you have to :)
     return false
@@ -61,16 +60,18 @@ function load () {
     var newTrackEl = ich.trackNew();
     console.log(newTrackEl)
     content.html(newTrackEl);
+    // When the object of form (.new-song-form) is submitted run the onSubmit function
+    // Define form object as a variable
+    form = $(".new-song-form");
+    form.submit(onSubmit);
+
     return false
   }
 
   function dataSaved (newObject) {
     console.log(newObject);
   }
-
-  // When the object of form (.new-song-form) is submitted run the onSubmit function
-  form.submit(onSubmit);
-  addTrackBtn.click(newTrack);
+  
 
   // var index = ich.tracksIndex(user_data_object);
   // var newTrack = ich.trackNew(user_data_object);

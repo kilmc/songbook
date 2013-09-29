@@ -13,7 +13,7 @@
 <body>
   <div class="site-wrap">
     <header class="site-header">
-      <h1>Kilian's Songbook</h1>
+      <h1><a href="/">Kilian's Songbook</a></h1>
       <a href="/track-new.html" class="add-new-track">Add Track</a>
     </header>
     
@@ -165,27 +165,27 @@
         </script>
 
         <script id="trackShow" type="text/html">
-          <h2 class="track-title">{{ track-title }}</h2>
-          <h3 class="track-artist">{{ artist-name }}</h3>
+          <h2 class="track-title">{{ trackTitle }}</h2>
+          <h3 class="track-artist">{{ artistName }}</h3>
 
           <ul class="instruments">
-            <li>{{ instrument-type }}</li>
+            <li>{{ instrumentType }}</li>
           </ul>
 
           <div class="track-lyrics">
             <h3>Lyrics</h3>
-            {{ track-lyrics }}
+            {{ trackLyrics }}
           </div>
 
           <div class="track-guitar-tab">
             <h3>Guitar TAB</h3>
   <pre>
-  {{ track-tab }}
+  {{ trackTab }}
   </pre>
           </div>
 
           <h3>Track Video</h3>
-          <iframe width="420" height="315" src="{{ track-url }}" frameborder="0" allowfullscreen></iframe>
+          <iframe width="420" height="315" src="{{ trackUrl }}" frameborder="0" allowfullscreen></iframe>
         </script>
   
   <script src="assets/vendor/ICanHaz.min.js"></script>
