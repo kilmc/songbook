@@ -1,122 +1,68 @@
 <script lang="ts">
-  interface ISong {
-    songTitle: string;
-    artist: string;
-    measures: IMeasure[];
-  }
-  interface IMeasure {
-    chords?: IChord[];
-    lyrics?: ILyric;
-  }
-  interface IChord {
-    name: string;
-    notes: string[];
-    duration: string;
-    position: string;
-    degree: TDegree;
-  }
-  interface ILyric {
-    text: string;
-    segments: ISegment[];
-  }
-  interface ISegment {
-    text: string;
-    position: string;
+import { song } from "./songs/teenageDirtbag";
+import type { IChord, ISegment } from "./types";
+import Chord from './Chord.svelte';
+
+
+  function getLyricPosition(segment: ISegment) {
+    const [beatPosition] = segment.position.split('.').map(parseInt)
+    const rowStyle = "grid-row: 2;";
+    const columnStyle = `grid-column: ${beatPosition + 1};`
+
+    return `${rowStyle} ${columnStyle}`
   }
 
-  type TDegree = "I"|"ii"|"iii"|"IV"|"V"|"vi"|"vii";
+  document.addEventListener('mouseup', (event) => {  
+    if(window.getSelection().toString().length){
+       let exactText = window.getSelection().toString();    
+       currentSegment = exactText
+    };
+  });
+  let currentSegment = ""
+  let chordName = '';
 
-	let song:ISong = {
-    songTitle: "Teenage Dirtbag",
-    artist: "Wheatus",
-    measures: [
-      {
-        chords: [
-          {
-            name: "E",
-            notes: ["E", "G#", "B"],
-            duration: "1.0",
-            position: "1.0",
-            degree: "I"
-          },
-          {
-            name: "B",
-            notes: ["B", "D#", "F#"],
-            duration: "1.0",
-            position: "3.0",
-            degree: "V"
-          }
-        ],
-        lyrics: {
-          text: "Her name is Noelle",
-          segments: [
-            {
-              text: "Her",
-              position: "-1.0"
-            },
-            {
-              text: "name is No",
-              position: "1.0"
-            },
-            {
-              text: "elle",
-              position: "3.0"
-            }
-          ]
-        }
-      }
-    ]
+  function saveChord(chord: string, segment: string) {
+    console.log(chord, segment)
   }
-
 </script>
 
 <style>
-  .measure {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* we're subdiving by 5 to allow for 4 beats plus a leading beat to the left */
-    grid-template-rows: repeat(3, 100px);
-  }
-
-  .beat {
-    grid-row: 1 / span 1;
-  }
-
-  .beat-1 {
-    grid-column: 2 / span 1;
-    
-  }
-
-  .chord-1 {
-    grid-column: 2 / span 1;
-  }
-
-  .chord-2 {
-    grid-column: 4 / span 1;
-  }
-
-
-
-  .leading {
-  }
-
-
+.measure {
+  display: grid;
+  grid-template-columns: repeat(5, max-content); /* we're subdiving by 5 to allow for 4 beats plus a leading beat to the left */
+  grid-template-rows: repeat(3, auto);
+  gap: 0.5ch;
+  font-size: 2rem;
+}
+.songbook-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+}
 </style>
+<div class="songbook-container">
+  <main><h1>Song: {song.songTitle}</h1>
 
-<h1>Song: {song.songTitle}</h1>
-<div class="measure">
-  <div class="beat beat-1">1</div>
-  <div class="beat beat-2">2</div>
-  <div class="beat beat-3">3</div>
-  <div class="beat beat-4">4</div>
-  <div class="chord chord-1">E</div>
-  <div class="chord chord-2">B</div>
-  <div class="lyric lyric-1">Her</div>
-  <div class="lyric lyric-2">name is No</div>
-  <div class="lyric lyric-2">elle</div>
+
+    {#each song.measures as measure}
+      <div class="measure">
+        {#each measure.chords as chord}
+          <Chord chord={chord} />
+        {/each}
+        {#each measure.lyrics.segments as segment}
+          <div class="lyric" style={getLyricPosition(segment)}>{segment.text}</div>
+        {/each}
+      </div>
+    {/each}
+    
+    <div>
+      She rings my bell
+    </div>
+    </main>
+    <sidebar>
+      <div>Lyric segment: {currentSegment}</div>
+      <label>Chord: <input bind:value={chordName} /></label>
+      <button on:click={() => saveChord(chordName, currentSegment)}>Save</button>
+    </sidebar>
 </div>
-
-{#each song.measures as item}
-  
-{/each}
 
 
