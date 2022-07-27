@@ -1,10 +1,12 @@
 <script lang="ts">
   import Chord from './Chord.svelte';
-import FullSection from './FullSection.svelte';
+  import { WHOLE_NOTE_TICKS } from './constants/midi';
+  import FullSection from './FullSection.svelte';
   import LyricLine from './LyricLine.svelte';
   import MidiInput from './MidiInput.svelte';
   import { song } from './stores/songStore'
   import type { IChord } from './types';
+  import merge from 'lodash.merge';
 
   document.addEventListener('mouseup', (event) => {  
     if(window.getSelection().toString().length){
@@ -25,6 +27,28 @@ import FullSection from './FullSection.svelte';
   let name = '';
   let duration = '';
   let position = '';
+  let initialLyrics = 'Her name is Noelle\nI had a dream about her';
+
+  const generateLyricsTrack = () => {
+    const nodes = initialLyrics
+    .split('\n')
+    .map((node, index)=>{
+      return {
+        data: node,
+        position: index * WHOLE_NOTE_TICKS,
+        duration: WHOLE_NOTE_TICKS,
+      }
+    });
+
+    song.set(merge($song, {
+      tracks: [
+        {
+          type: "lyrics",
+          nodes,
+        }
+      ]
+    }));
+  }
 
   
 </script>
@@ -43,7 +67,8 @@ import FullSection from './FullSection.svelte';
 }
 </style>
 <div class="songbook-container">
-  <main><h1>Song: {$song.songTitle}</h1>
+  <main>
+    <h1>Song: {$song.songTitle}</h1>
 
 
     <!-- {#each $song.measures as measure}
@@ -58,14 +83,19 @@ import FullSection from './FullSection.svelte';
     <!-- <MidiInput /> -->
     <FullSection />
     
-    </main>
-    <sidebar>
-      <div>Lyric segment: {currentSegment}</div>
-      <label>Chord: <input bind:value={name} /></label>
-      <label>Position: <input bind:value={position} /></label>
-      <label>Duration: <input bind:value={duration} /></label>
-      <button on:click={() => saveChord({ position, name, duration })}>Save</button>
-    </sidebar>
+  </main>
+  <sidebar>
+    <div>Lyric segment: {currentSegment}</div>
+    <label>Chord: <input bind:value={name} /></label>
+    <label>Position: <input bind:value={position} /></label>
+    <label>Duration: <input bind:value={duration} /></label>
+    <button on:click={() => saveChord({ position, name, duration })}>Save</button>
+
+    <div>
+      <textarea bind:value={initialLyrics}></textarea>
+      <button on:click={generateLyricsTrack}>Generate lyrics track</button>
+    </div>
+  </sidebar>
 </div>
 
 
