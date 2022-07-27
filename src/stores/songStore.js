@@ -1,4 +1,6 @@
-export let song = {
+import { writable } from "svelte/store";
+
+const tdb = {
   songTitle: "Teenage Dirtbag",
   artist: "Wheatus",
   measures: [
@@ -68,5 +70,13 @@ export let song = {
         ],
       },
     },
+    {
+      chords: [],
+      lyrics: {
+        text: "She rings my bell",
+      },
+    },
   ],
 };
+
+export const song = writable(tdb);

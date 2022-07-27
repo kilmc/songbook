@@ -9,10 +9,10 @@ export interface IMeasure {
 }
 export interface IChord {
   name: string;
-  notes: string[];
+  notes?: string[];
   duration: string;
   position: string;
-  degree: TDegree;
+  degree?: TDegree;
 }
 export interface ILyric {
   text: string;
