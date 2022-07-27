@@ -28,12 +28,12 @@ const tdb = {
       type: "lead-vocal",
       nodes: [
         { data: "G#4", position: 0, duration: 48 },
-        
+
         { data: "G#4", position: 48, duration: 48 },
         { data: "A4", position: 96, duration: 48 },
         { data: "B4", position: 144, duration: 48 },
         { data: "D#5", position: 240, duration: 48 },
-        
+
         { data: "G#4", position: 432, duration: 48 },
         { data: "A4", position: 480, duration: 48 },
         { data: "B4", position: 528, duration: 48 },
@@ -44,9 +44,25 @@ const tdb = {
   ],
 };
 
-const emptySong = {
+export interface INode {
+  data: string;
+  position: number;
+  duration: number;
+}
+
+export interface ITrack {
+  type: "lyrics" | "chords" | "lead-vocal";
+  originalLyric?: string;
+  nodes: INode[];
+}
+export interface ISongNew {
+  songTitle: string;
+  tracks: ITrack[];
+}
+
+const emptySong: ISongNew = {
   songTitle: "Teenage",
   tracks: [],
-}
+};
 
 export const song = writable(emptySong);
