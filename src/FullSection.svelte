@@ -1,6 +1,13 @@
 <script lang="ts">
   import { INode, song } from "./stores/songStore";
-  import merge from 'lodash.merge';
+  import ChordsTrack from "./ChordsTrack.svelte";
+  import LyricsTrack from "./LyricsTrack.svelte";
+
+  const trackMap = {
+    lyrics: LyricsTrack,
+    chords: ChordsTrack
+  }
+
 
   const getPosition = (node: INode) => {
     const value = Math.trunc(node.position/12);
@@ -35,21 +42,21 @@
         }
       ]
     }));
+    console.log($song)
   }
 </script>
 
 <div class="tracks">
   {#each $song.tracks as track}
-    <div class="track {track.type}">
+    <svelte:component this={trackMap[track.type]}>
       {#each track.nodes as node}
         <span style="grid-column: {getPosition(node)} / span {getDuration(node)}">
           {#each node.data.split('') as char, i}
             <span class="lyric-char" on:click={() => splitLyric(node,i,track.nodes)}>{char}</span>
           {/each}
         </span>
-      {/each}
-      <div class="bars"></div>
-    </div>
+      {/each}  
+    </svelte:component>
   {/each}
   
 </div>
@@ -87,6 +94,9 @@
     position: relative;
     overflow: visible;
     margin-bottom: 1rem;
+    padding: 0.25rem 0;
+    font-family: monospace;
+    font-size: 1.5rem;
 
     &.chords {
       span:nth-of-type(1) {
