@@ -36,7 +36,7 @@
     <h1>Song: {$song.songTitle}</h1>
     <FullSection />
     <div class="test-track">
-      <Track gridResolution={4}>
+      <Track gridResolution={8}>
         <div style="grid-column: 1 / span 8">One</div>
         <div style="grid-column: 9 / span 8">Two</div>
         <div style="grid-column: 17 / span 8">Three</div>
