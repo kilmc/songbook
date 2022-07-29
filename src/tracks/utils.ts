@@ -11,5 +11,11 @@ export const getDuration = (node: INode) => {
 };
 
 export const getGridColumn = (node: INode) => {
-  return `grid-column: ${getPosition(node)} / span ${getDuration(node)}`;
+  return `grid-column: ${getPosition(node)} / span ${getDuration(node)};`;
+};
+
+export const generateCSSVars = (obj: object) => {
+  return Object.entries(obj)
+    .map(([key, value]) => `--${key}:${value}`)
+    .join(";");
 };

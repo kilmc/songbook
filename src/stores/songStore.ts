@@ -1,8 +1,9 @@
 import { writable } from "svelte/store";
 import type { ISong } from "../types";
 
-const tdb = {
-  song: "Teenage",
+const tdb: ISong = {
+  songTitle: "Teenage Dirtbag",
+  barOffset: 8,
   tracks: [
     {
       type: "lyrics",
@@ -33,7 +34,7 @@ const tdb = {
         { data: "G#4", position: 48, duration: 48 },
         { data: "A4", position: 96, duration: 48 },
         { data: "B4", position: 144, duration: 48 },
-        { data: "D#5", position: 240, duration: 48 },
+        { data: "D#5", position: 192, duration: 48 },
 
         { data: "G#4", position: 432, duration: 48 },
         { data: "A4", position: 480, duration: 48 },
@@ -50,4 +51,4 @@ const emptySong: ISong = {
   tracks: [],
 };
 
-export const song = writable(emptySong);
+export const song = writable(tdb);

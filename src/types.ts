@@ -12,6 +12,7 @@ export interface ITrack {
 }
 export interface ISong {
   songTitle: string;
+  barOffset?: number;
   tracks: ITrack[];
 }
 

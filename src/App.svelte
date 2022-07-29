@@ -3,7 +3,8 @@
   import { song } from './stores/songStore'
   import merge from 'lodash.merge';
   import AddTracks from './AddTracks.svelte';
-  import Tracks from './tracks/Tracks.svelte';
+  import InputTrack from "./tracks/InputTrack.svelte";
+import Tracks from "./tracks/Tracks.svelte";
 
   let initialLyrics = 'Her name is Noelle\nI had a dream about her';
 
