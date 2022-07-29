@@ -63,10 +63,11 @@ $WHOLE_NOTE_TICKS: 384;
   position: relative;
   overflow: visible;
   margin-bottom: 1rem;
-  padding: 0.25rem 0;
+  // padding: 0.25rem 0;
   font-family: monospace;
   font-size: 1.5rem;
   background-color: var(--track-color);
+  min-height: 24px;
 }
 
 .track__bars {
