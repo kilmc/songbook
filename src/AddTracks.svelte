@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { song, TTrackType } from "./stores/songStore";
+  import { song } from "./stores/songStore";
   import merge from 'lodash.merge';
+  import type { TTrackType } from "./types";
 
   const addTrack = (type: TTrackType) => {
     song.set(merge($song, {

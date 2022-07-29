@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { song, TTrackType } from "./stores/songStore";
-  import ChordsTrack from "./tracks/ChordsTrack.svelte";
-  import LyricsTrack from "./tracks/LyricsTrack.svelte";
-  import VocalMelodyTrack from "./tracks/VocalMelodyTrack.svelte";
+  import { song } from "../stores/songStore";
+  import type { TTrackType } from "../types";
+  import ChordsTrack from "./ChordsTrack.svelte";
+  import LyricsTrack from "./LyricsTrack.svelte";
+  import VocalMelodyTrack from "./VocalMelodyTrack.svelte";
 
   const trackMap: { [k in TTrackType]: any } = {
     lyrics: LyricsTrack,

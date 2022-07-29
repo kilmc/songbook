@@ -1,4 +1,4 @@
-import type { INode } from "../stores/songStore";
+import type { INode } from "../types";
 
 export const getPosition = (node: INode) => {
   const value = Math.trunc(node.position / 12);

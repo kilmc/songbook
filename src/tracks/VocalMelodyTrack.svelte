@@ -1,9 +1,9 @@
 <script lang="ts">
-import type { ITrack } from "../stores/songStore";
+  import type { ITrack } from "../types";
+  import Track from "./Track.svelte";
+  import { getGridColumn } from "./utils";
 
-import Track from "./Track.svelte";
-import { getGridColumn } from "./utils";
-export let track: ITrack;
+  export let track: ITrack;
 </script>
 <div>
   <h2>Vocal melody</h2>

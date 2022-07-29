@@ -1,4 +1,5 @@
 import { writable } from "svelte/store";
+import type { ISong } from "../types";
 
 const tdb = {
   song: "Teenage",
@@ -44,24 +45,7 @@ const tdb = {
   ],
 };
 
-export interface INode {
-  data: string;
-  position: number;
-  duration: number;
-}
-
-export type TTrackType = "lyrics" | "chords" | "lead-vocal";
-export interface ITrack {
-  type: TTrackType;
-  originalLyric?: string;
-  nodes: INode[];
-}
-export interface ISongNew {
-  songTitle: string;
-  tracks: ITrack[];
-}
-
-const emptySong: ISongNew = {
+const emptySong: ISong = {
   songTitle: "Teenage",
   tracks: [],
 };

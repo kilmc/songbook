@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { INode, ITrack, song } from "../stores/songStore";
+  import { song } from "../stores/songStore";
+  import type { INode, ITrack } from "../types";
   import Track from "./Track.svelte";
   import { getGridColumn } from "./utils";
   

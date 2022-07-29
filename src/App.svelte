@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { WHOLE_NOTE_TICKS } from './constants/midi';
+  import { WHOLE_NOTE_TICKS } from "./constants/midi";
   import { song } from './stores/songStore'
   import merge from 'lodash.merge';
   import AddTracks from './AddTracks.svelte';

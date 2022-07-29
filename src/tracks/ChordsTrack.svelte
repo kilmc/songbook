@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ITrack } from "../stores/songStore";
+  import type { ITrack } from "../types";
   import Track from "./Track.svelte";
   import { getGridColumn } from "./utils";
 

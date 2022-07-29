@@ -1,26 +1,18 @@
+export interface INode {
+  data: string;
+  position: number;
+  duration: number;
+}
+
+export type TTrackType = "lyrics" | "chords" | "lead-vocal";
+export interface ITrack {
+  type: TTrackType;
+  originalLyric?: string;
+  nodes: INode[];
+}
 export interface ISong {
   songTitle: string;
-  artist: string;
-  measures: IMeasure[];
-}
-export interface IMeasure {
-  chords?: IChord[];
-  lyrics?: ILyric;
-}
-export interface IChord {
-  name: string;
-  notes?: string[];
-  duration: string;
-  position: string;
-  degree?: TDegree;
-}
-export interface ILyric {
-  text: string;
-  segments: ISegment[];
-}
-export interface ISegment {
-  text: string;
-  position: string;
+  tracks: ITrack[];
 }
 
 export type TDegree = "I" | "ii" | "iii" | "IV" | "V" | "vi" | "vii";
