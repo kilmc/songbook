@@ -68,3 +68,15 @@ button:not(:disabled):active {
 button:focus {
   border-color: #666;
 }
+
+/* Utilities */
+
+.mb1 {
+  margin-bottom: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  background-color: black;
+  color: white;
+}

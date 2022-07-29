@@ -50,8 +50,9 @@ export interface INode {
   duration: number;
 }
 
+export type TTrackType = "lyrics" | "chords" | "lead-vocal";
 export interface ITrack {
-  type: "lyrics" | "chords" | "lead-vocal";
+  type: TTrackType;
   originalLyric?: string;
   nodes: INode[];
 }
