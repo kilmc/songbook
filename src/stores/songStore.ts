@@ -51,4 +51,5 @@ const emptySong: ISong = {
   tracks: [],
 };
 
-export const song = writable(tdb);
+const storedSong = localStorage.getItem("song");
+export const song = writable(JSON.parse(storedSong));
