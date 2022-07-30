@@ -14,7 +14,7 @@
 
 <div class="tracks">
   {#each $song.tracks as track}
-    <svelte:component this={trackMap[track.type]} track={track} />
+    <svelte:component this={trackMap[track.type]} bind:track />
   {/each}
 </div>
 

@@ -19,14 +19,12 @@
     // Replace old node with new nodes
     nodes.splice(oldNodeIndex,1,...result)
     
-    song.set(Object.assign($song,{
-      tracks: [
-        {
-          type: "lyrics",
-          nodes,
-        }
-      ]
-    }));
+    //this sets the prop track with the new track structure. 
+    //because the track is bound, the change reflects all the way up the store and triggers a full re-render
+    track = {
+      type: "lyrics",
+      nodes,
+    };
     console.log($song)
   }
 
