@@ -1,0 +1,23 @@
+@import "../scss/variables.scss";
+
+@mixin gridLines($resolution) {
+  $grid-division: calc($WHOLE_NOTE_TICKS / $resolution);
+
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent #{$grid-division - 1}px,
+    var(--grid-line-color) #{$grid-division - 1}px,
+    var(--grid-line-color) #{$grid-division}px
+  );
+}
+
+@mixin barLines {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent #{$WHOLE_NOTE_TICKS - 1}px,
+    var(--bar-line-color) #{$WHOLE_NOTE_TICKS - 1}px,
+    var(--bar-line-color) #{$WHOLE_NOTE_TICKS}px
+  );
+}

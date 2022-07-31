@@ -30,18 +30,17 @@
 
   export let track: ITrack;
 </script>
-<div>
-  <h2>Lyrics</h2>
-  <Track>
-    {#each track.nodes as node}
-      <span style={getGridColumn(node)}>
-        {#each node.data.split('') as char, i}
-          <span class="lyric-char" on:click={() => splitLyric(node,i,track.nodes)}>{char}</span>
-        {/each}
-      </span>
-    {/each}  
-  </Track>
-</div>  
+
+<Track track={} />
+
+<!-- {#each track.nodes as node}
+<span style={getGridColumn(node)}>
+  {#each node.data.split('') as char, i}
+    <span class="lyric-char" on:click={() => splitLyric(node,i,track.nodes)}>{char}</span>
+  {/each}
+</span>
+{/each}   -->
+
 
 <style lang="scss">
 .lyric-char:hover {

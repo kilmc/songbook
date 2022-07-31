@@ -19,3 +19,16 @@ export const generateCSSVars = (obj: object) => {
     .map(([key, value]) => `--${key}:${value}`)
     .join(";");
 };
+
+export const numberRangesOverlap = (
+  x1: number,
+  x2: number,
+  y1: number,
+  y2: number
+) => {
+  return x1 < y2 && y1 < x2;
+};
+
+export const getNodeEndPosition = (node: INode) => {
+  return node.position + node.duration;
+};
