@@ -13,8 +13,13 @@
   export let gridLineColor = "#aaa";
   export let barLineColor = "#000";
   export let barLineOffset = $song.barOffset;
+
+  let trackerPosition = null;
+  let showTracker = false;
   
   let rowDisplay: TRowDisplayValue = track.type === "lead-vocal" ? "notes" : "single";
+  const blankDuration = WHOLE_NOTE_TICKS / gridResolution;
+
 
   const buildNodeRows = (nodes: INode[]) => {    
     if(rowDisplay === 'notes') {
@@ -32,114 +37,29 @@
         })
         .map(([_, node]) => node)
     } else {
-      return [nodes]
+      return nodes
     }
-  }
-
-
-  const splitNode = (node: INode) => {
-    const barOffsetDuration = WHOLE_NOTE_TICKS / barLineOffset
-    let splitNotes;
-
-    if(node.position === 0 && barLineOffset > 0) {
-      splitNotes = [
-        { data: "BLANK", position: 0, duration: barOffsetDuration},
-        ...splitNode({ data: "BLANK", position: barOffsetDuration, duration: node.duration - barOffsetDuration})
-      ]
-      return splitNotes.flat()
-    } else {
-      const splitNodeDuration = WHOLE_NOTE_TICKS / gridResolution;
-      const remainder = node.duration % splitNodeDuration;
-      const numberOfSplits = (node.duration - remainder) / splitNodeDuration;
-      const nodeOverlapSize = (node.position + barOffsetDuration) % splitNodeDuration;
-      const startsInTheMiddleOfNodeDuration = nodeOverlapSize > 0;
-
-      return [...new Array(numberOfSplits)
-        .fill({ data: "BLANK", position: 0, duration: splitNodeDuration  })]
-        .flatMap((splitNode,i) => {
-          let newPosition;
-
-          if (startsInTheMiddleOfNodeDuration && i === 0) {
-            console.log("HERE",splitNode,node.position + (i * splitNodeDuration))
-            // newPosition = node.position + nodeOverlapSize
-            newPosition = node.position + (i * splitNodeDuration)
-          } else {
-            newPosition = node.position + (i * splitNodeDuration)
-          }
-
-          return { ...splitNode, position: newPosition }
-      })
-    }
-  }
-
-  const getGaps = (nodes: INode[]) => {
-    const firstNode = nodes[0];
-    const lastNode = nodes[nodes.length - 1];
-    
-    // console.log(nodes)
-    return nodes
-      .reduce((accum, node,i) => {
-        const nodeEndPosition = getNodeEndPosition(node);
-        const hasNextNode = nodes[i+1] !== undefined;
-        const isLastNode = !hasNextNode;
-        const isFirstNode = i === 0
-        const firstAndOnlyNode = !hasNextNode && isFirstNode;
-        const isPositionZero = node.position === 0;
-
-        const endBlanks = { data: "BLANK", position: nodeEndPosition, duration: 1000 }
-        const startBlanks = { data: "BLANK", position: 0, duration: node.position }
-        
-        if(firstAndOnlyNode) {
-          if(isPositionZero) {
-            accum.concat(node,endBlanks)
-          } else {
-            return accum.concat(startBlanks,node,endBlanks);
-          }
-        }
-        
-        if(isLastNode) {
-          return accum.concat(node,endBlanks);
-        }
-        
-        const positionOfNextNode = nodes[i+1].position;
-        const offsetFirstNode = isFirstNode && !isPositionZero;
-        const noGap = nodeEndPosition === positionOfNextNode;
-        const spaceBetweenBlanks = { data: "BLANK", position: nodeEndPosition, duration: positionOfNextNode - nodeEndPosition }
-        
-        if(offsetFirstNode) {
-          if(noGap) {
-            return accum.concat(startBlanks, node)
-          } else {
-            return accum.concat(startBlanks, node, spaceBetweenBlanks);
-          }
-        }
-    
-        
-
-        if(noGap) {
-          return accum.concat(node);
-        } else {
-          return accum.concat(node, spaceBetweenBlanks);
-        }
-        
-    },[])
-    .flatMap(node => {
-      if(node.data === "BLANK") {
-        return splitNode(node);
-      } else {
-        return node;
-      }
-    });
   }
   
   const getNodeRows = (nodes: INode[], gridResolution: number) => {
-    const blankDuration = WHOLE_NOTE_TICKS / gridResolution;
-    const builtRows = buildNodeRows(nodes).map(getGaps);
+    const builtRows = buildNodeRows(nodes);
     console.log(builtRows)
     return builtRows
   }
 
+  const addNewNode = (event) => {
+    const targetColumnIndex = Math.trunc(event.layerX/blankDuration);
+    const newNode:INode = {
+      position: targetColumnIndex*blankDuration,
+      duration: blankDuration,
+      data: "",
+    }
 
+    const updatedTrack = track;
+    updatedTrack.nodes.push(newNode);
+    updatedTrack.nodes.sort((a,b)=>(a.position - b.position))
+    track = updatedTrack;
+  }
 
   $: nodeRows = getNodeRows(track.nodes,gridResolution)
 
@@ -148,21 +68,33 @@
     'grid-line-color': gridLineColor,
     'bar-line-color': barLineColor,
 	})
+
+  const moveTracker = (event) => {
+    const targetColumnIndex = Math.trunc(event.layerX/blankDuration);
+    trackerPosition = targetColumnIndex*blankDuration;
+  }
 </script>
 
 <div>
   <h2>{track.type}</h2>
-  <div class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}" style={cssVarStyles}>
-    {#each Object.values(nodeRows) as row}
-      <div class="track__row">
-        {#each row as node}
-          <TrackNode node={node} />
-        {/each}    
-      </div>
-    {/each}
-    
+  <div class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}"
+       style={cssVarStyles}
+      on:click={addNewNode}
+      on:mouseenter={()=>showTracker = true}
+      on:mouseleave={()=>showTracker = false}
+      on:mousemove={moveTracker}
+  >
+    <div class="track__row">
+      {#each track.nodes as node}
+        <TrackNode bind:node />
+      {/each}    
+    </div>
+  
     <div class="track__bars"></div>
     <div class="track__grid"></div>
+    {#if showTracker}
+      <div class="tracker" style="left: {trackerPosition}px; width: {blankDuration}px;"></div>
+    {/if}
   </div>
 </div> 
 
@@ -229,5 +161,13 @@ $barOffset: 2, 4, 8, 16, 32;
       left: -$value;
     }
   }
+}
+
+.tracker {
+  position:absolute;
+  top: 0;
+  height: 100%;
+  background-color: pink;
+  pointer-events: none;
 }
 </style>

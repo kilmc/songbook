@@ -46,10 +46,12 @@ const tdb: ISong = {
   ],
 };
 
-const emptySong: ISong = {
+export const emptySong: ISong = {
   songTitle: "Teenage",
   tracks: [],
+  barOffset: 0,
 };
 
-const storedSong = localStorage.getItem("song") || JSON.stringify(tdb);
+const storedSong = localStorage.getItem("song") || JSON.stringify(emptySong);
+console.log(storedSong)
 export const song = writable(JSON.parse(storedSong));

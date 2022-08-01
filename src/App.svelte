@@ -1,6 +1,6 @@
 <script lang="ts">
   import { WHOLE_NOTE_TICKS } from "./constants/midi";
-  import { song } from './stores/songStore'
+  import { emptySong, song } from './stores/songStore'
   import merge from 'lodash.merge';
   import AddTracks from './AddTracks.svelte';
   import InputTrack from "./tracks/InputTrack.svelte";
@@ -32,6 +32,10 @@
   song.subscribe(value => {
     localStorage.setItem("song", JSON.stringify(value));
   })
+
+  const clearStorage = () => {
+    song.set(emptySong)
+  }
   
 </script>
 
@@ -42,6 +46,7 @@
     <Tracks />  
   </main>
   <sidebar>
+    <div><button class="btn" on:click={clearStorage}>nuke storage</button></div>
     <div>
       <textarea bind:value={initialLyrics}></textarea>
       <button class="btn" on:click={generateLyricsTrack}>Generate lyrics track</button>
