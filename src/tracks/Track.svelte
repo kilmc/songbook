@@ -8,7 +8,7 @@
   import { generateCSSVars, getNodeEndPosition, numberRangesOverlap } from "./utils";
   
   export let track: ITrack;
-  export let gridResolution = 4;
+  export let gridResolution = 8;
   export let trackColor = "#bbbbbb";
   export let gridLineColor = "#aaa";
   export let barLineColor = "#000";
@@ -35,79 +35,114 @@
       return [nodes]
     }
   }
-  
-  const getNodeRows = (nodes: INode[], gridResolution: number) => {
-    const blankDuration =  WHOLE_NOTE_TICKS / gridResolution;
-
-    return buildNodeRows(nodes)
-      // .map(row =>[...new Array(gridResolution*8)]
-      // .map((_,i) => { 
-      //   const offsetBlankDuration = WHOLE_NOTE_TICKS / barLineOffset;
-      //   if (barLineOffset > 0 && i === 0) {
-      //     return {
-      //       data: "BLANK",
-      //       duration: offsetBlankDuration,
-      //       position: offsetBlankDuration * i
-      //     }
-      //   }
-      //   return {
-      //     data: "BLANK",
-      //     duration: blankDuration,
-      //     position: barLineOffset > 0 ? (blankDuration * i) - offsetBlankDuration : blankDuration * i
-      //   }
-      // })
-      // .reduce<INode[]>((accum, blank) => {
-      //   const blankEndPosition = getNodeEndPosition(blank);
-      //   const matchedNodeIndex = row.findIndex(node => numberRangesOverlap(
-      //     blank.position,
-      //     blankEndPosition,
-      //     node.position,
-      //     getNodeEndPosition(node)
-      //   ));
-      
-      //   if (matchedNodeIndex === -1){
-      //     return accum.concat(blank)
-      //   }
-
-      //   const matchedNode = row[matchedNodeIndex];
-      //   const matchedNodeEndPosition = getNodeEndPosition(matchedNode);
-
-      //   const isFullyContainedByNode = blank.position >= matchedNode.position && blankEndPosition <= matchedNodeEndPosition;
-      //   const isAlreadyAdded = accum.findIndex(node => node.data === matchedNode.data) !== -1;
-
-      //   if (isFullyContainedByNode && !isAlreadyAdded) {
-      //     console.log("FULL")
-      //     console.log(matchedNode)
-      //     console.log(blank)
-
-      //     return accum.concat(matchedNode)
-      //   }
-
-      //   const startsBeforeNode = blank.position < matchedNode.position;
-      //   const endsWithinNode = blankEndPosition < matchedNodeEndPosition;
-      //   const startsWithinNode = blank.position >= matchedNode.position;
-      //   const endsAfterNode = blankEndPosition <= matchedNodeEndPosition;
-      //   const isPartiallyContainedByNode = (startsBeforeNode && endsWithinNode) || (startsWithinNode && endsAfterNode)
-
-      //   if(isPartiallyContainedByNode) {
-      //     console.log("PARTIAL")
-      //     console.log(matchedNode)
-      //     console.log(blank)
-      //     return accum.concat(matchedNode)
-      //   }
 
 
+  const splitNode = (node: INode) => {
+    const barOffsetDuration = WHOLE_NOTE_TICKS / barLineOffset
+    let splitNotes;
 
+    if(node.position === 0 && barLineOffset > 0) {
+      splitNotes = [
+        { data: "BLANK", position: 0, duration: barOffsetDuration},
+        ...splitNode({ data: "BLANK", position: barOffsetDuration, duration: node.duration - barOffsetDuration})
+      ]
+      return splitNotes.flat()
+    } else {
+      const splitNodeDuration = WHOLE_NOTE_TICKS / gridResolution;
+      const remainder = node.duration % splitNodeDuration;
+      const numberOfSplits = (node.duration - remainder) / splitNodeDuration;
+      const nodeOverlapSize = (node.position + barOffsetDuration) % splitNodeDuration;
+      const startsInTheMiddleOfNodeDuration = nodeOverlapSize > 0;
 
+      return [...new Array(numberOfSplits)
+        .fill({ data: "BLANK", position: 0, duration: splitNodeDuration  })]
+        .flatMap((splitNode,i) => {
+          let newPosition;
 
+          if (startsInTheMiddleOfNodeDuration && i === 0) {
+            console.log("HERE",splitNode,node.position + (i * splitNodeDuration))
+            // newPosition = node.position + nodeOverlapSize
+            newPosition = node.position + (i * splitNodeDuration)
+          } else {
+            newPosition = node.position + (i * splitNodeDuration)
+          }
 
-      //   return accum
-      // },[]))
+          return { ...splitNode, position: newPosition }
+      })
+    }
   }
 
-  console.log(track.type)
+  const getGaps = (nodes: INode[]) => {
+    const firstNode = nodes[0];
+    const lastNode = nodes[nodes.length - 1];
+    
+    // console.log(nodes)
+    return nodes
+      .reduce((accum, node,i) => {
+        const nodeEndPosition = getNodeEndPosition(node);
+        const hasNextNode = nodes[i+1] !== undefined;
+        const isLastNode = !hasNextNode;
+        const isFirstNode = i === 0
+        const firstAndOnlyNode = !hasNextNode && isFirstNode;
+        const isPositionZero = node.position === 0;
+
+        const endBlanks = { data: "BLANK", position: nodeEndPosition, duration: 1000 }
+        const startBlanks = { data: "BLANK", position: 0, duration: node.position }
+        
+        if(firstAndOnlyNode) {
+          if(isPositionZero) {
+            accum.concat(node,endBlanks)
+          } else {
+            return accum.concat(startBlanks,node,endBlanks);
+          }
+        }
+        
+        if(isLastNode) {
+          return accum.concat(node,endBlanks);
+        }
+        
+        const positionOfNextNode = nodes[i+1].position;
+        const offsetFirstNode = isFirstNode && !isPositionZero;
+        const noGap = nodeEndPosition === positionOfNextNode;
+        const spaceBetweenBlanks = { data: "BLANK", position: nodeEndPosition, duration: positionOfNextNode - nodeEndPosition }
+        
+        if(offsetFirstNode) {
+          if(noGap) {
+            return accum.concat(startBlanks, node)
+          } else {
+            return accum.concat(startBlanks, node, spaceBetweenBlanks);
+          }
+        }
+    
+        
+
+        if(noGap) {
+          return accum.concat(node);
+        } else {
+          return accum.concat(node, spaceBetweenBlanks);
+        }
+        
+    },[])
+    .flatMap(node => {
+      if(node.data === "BLANK") {
+        return splitNode(node);
+      } else {
+        return node;
+      }
+    });
+  }
+  
+  const getNodeRows = (nodes: INode[], gridResolution: number) => {
+    const blankDuration = WHOLE_NOTE_TICKS / gridResolution;
+    const builtRows = buildNodeRows(nodes).map(getGaps);
+    console.log(builtRows)
+    return builtRows
+  }
+
+
 
   $: nodeRows = getNodeRows(track.nodes,gridResolution)
+
 	$: cssVarStyles = generateCSSVars({
 		'track-color': trackColor,
     'grid-line-color': gridLineColor,
