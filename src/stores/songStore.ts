@@ -53,5 +53,4 @@ export const emptySong: ISong = {
 };
 
 const storedSong = localStorage.getItem("song") || JSON.stringify(emptySong);
-console.log(storedSong)
-export const song = writable(JSON.parse(storedSong));
+export const song = writable<ISong>(JSON.parse(storedSong));

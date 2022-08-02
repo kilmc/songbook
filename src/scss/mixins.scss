@@ -3,7 +3,7 @@
 @mixin gridLines($resolution) {
   $grid-division: calc($WHOLE_NOTE_TICKS / $resolution);
 
-  background: repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
     90deg,
     transparent,
     transparent #{$grid-division - 1}px,
@@ -13,7 +13,7 @@
 }
 
 @mixin barLines {
-  background: repeating-linear-gradient(
+  background-image: repeating-linear-gradient(
     90deg,
     transparent,
     transparent #{$WHOLE_NOTE_TICKS - 1}px,

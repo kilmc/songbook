@@ -3,7 +3,6 @@
   import { emptySong, song } from './stores/songStore'
   import merge from 'lodash.merge';
   import AddTracks from './AddTracks.svelte';
-  import InputTrack from "./tracks/InputTrack.svelte";
   import Tracks from "./tracks/Tracks.svelte";
 
   let initialLyrics = 'Her name is Noelle\nI had a dream about her';
@@ -40,7 +39,7 @@
 </script>
 
 <div class="songbook-container">
-  <main>
+  <main class="song">
     <h1>Song: {$song.songTitle}</h1>
     <AddTracks />
     <Tracks />  
@@ -58,5 +57,12 @@
 .songbook-container {
   display: grid;
   grid-template-columns: 1fr 300px;
+  width: 100vw;
 }
+
+.song {
+  width: 100%;
+  overflow:hidden;
+}
+
 </style>

@@ -5,12 +5,12 @@
   import type { INode, ITrack } from "../types";  
   import TrackNode from "./TrackNode.svelte";
   import type { TRowDisplayValue } from "./trackPreferences";
-  import { generateCSSVars, getNodeEndPosition, numberRangesOverlap } from "./utils";
+  import { generateCSSVars } from "./utils";
   
   export let track: ITrack;
-  export let gridResolution = 8;
+  export let gridResolution = 1;
   export let trackColor = "#bbbbbb";
-  export let gridLineColor = "#aaa";
+  export let gridLineColor = "#888";
   export let barLineColor = "#000";
   export let barLineOffset = $song.barOffset;
 
@@ -18,7 +18,8 @@
   let showTracker = false;
   
   let rowDisplay: TRowDisplayValue = track.type === "lead-vocal" ? "notes" : "single";
-  const blankDuration = WHOLE_NOTE_TICKS / gridResolution;
+  
+  $: blankDuration = WHOLE_NOTE_TICKS / gridResolution;
 
 
   const buildNodeRows = (nodes: INode[]) => {    
@@ -41,12 +42,6 @@
     }
   }
   
-  const getNodeRows = (nodes: INode[], gridResolution: number) => {
-    const builtRows = buildNodeRows(nodes);
-    console.log(builtRows)
-    return builtRows
-  }
-
   const addNewNode = (event) => {
     const targetColumnIndex = Math.trunc(event.layerX/blankDuration);
     const newNode:INode = {
@@ -61,8 +56,6 @@
     track = updatedTrack;
   }
 
-  $: nodeRows = getNodeRows(track.nodes,gridResolution)
-
 	$: cssVarStyles = generateCSSVars({
 		'track-color': trackColor,
     'grid-line-color': gridLineColor,
@@ -76,17 +69,26 @@
 </script>
 
 <div>
-  <h2>{track.type}</h2>
-  <div class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}"
-       style={cssVarStyles}
-      on:click={addNewNode}
-      on:mouseenter={()=>showTracker = true}
-      on:mouseleave={()=>showTracker = false}
-      on:mousemove={moveTracker}
+  <div>
+    <h2>{track.type}</h2>
+    <select bind:value={gridResolution}>
+      {#each [1,2,4,8,16,32] as res}
+        <option value="{res}">{res}</option>
+      {/each}
+    </select>
+  </div>
+  
+  <div
+    class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}"
+    style={cssVarStyles}
+    on:click={addNewNode}
+    on:mouseenter={()=>showTracker = true}
+    on:mouseleave={()=>showTracker = false}
+    on:mousemove={moveTracker}
   >
     <div class="track__row">
       {#each track.nodes as node}
-        <TrackNode bind:node />
+        <TrackNode bind:node gridResolution={gridResolution}/>
       {/each}    
     </div>
   
@@ -102,10 +104,11 @@
 
 <style lang="scss">
 @import "../scss/mixins.scss";
+$row-height: 44px;
 
 .track {
   display: grid;
-  grid-auto-rows: 30px;
+  grid-auto-rows: $row-height;
   position: relative;
   overflow: visible;
   margin-bottom: 1rem;
@@ -118,6 +121,9 @@
 .track__row {
   display: grid;
   grid-auto-columns: 12px;
+  height: $row-height;
+  position: relative;
+  z-index: 1;
 }
 
 .track__bars {
@@ -126,7 +132,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -142,9 +148,11 @@
   background-color: goldenrod;
   padding: 0;
   margin: 0;
+  position: relative;
+  z-index: 1;
 }
 
-$resolutions: 4, 8, 16, 32;
+$resolutions: 1, 2, 4, 8, 16, 32;
 @each $size in $resolutions {
   .track--grid-#{$size} .track__grid {
     @include gridLines($size);
@@ -164,10 +172,11 @@ $barOffset: 2, 4, 8, 16, 32;
 }
 
 .tracker {
-  position:absolute;
+  position: absolute;
   top: 0;
   height: 100%;
-  background-color: pink;
+  background-color: rgba(#FFF,0.5);
   pointer-events: none;
+  z-index: 0;
 }
 </style>
