@@ -54,7 +54,7 @@
   style="{getGridColumn(node)}"
   on:click={toggleSelectNode}
   on:dblclick={toggleEditOn}
-  use:shortcut={{ code: "Backspace", callback: () => isSelected ? onDeleteNode(node) : undefined }}
+  use:shortcut={{ control: true, code: "Backspace", callback: () => isSelected ? onDeleteNode(node) : undefined }}
 >
   {#if isEditing}
     <input

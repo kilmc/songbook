@@ -1,4 +1,4 @@
-import type { INode } from "../types";
+import type { INode, ITrack } from "../types";
 
 export const getPosition = (node: INode) => {
   const value = Math.trunc(node.position / 12);
@@ -32,3 +32,9 @@ export const numberRangesOverlap = (
 export const getNodeEndPosition = (node: INode) => {
   return node.position + node.duration;
 };
+
+export const lastNodePosition = (nodes: INode[]) =>
+  nodes.map((node) => node.position + node.duration).sort((a, b) => b - a)[0];
+
+export const getFarthestNodePosition = (tracks: ITrack[]) =>
+  tracks.map((track) => lastNodePosition(track.nodes)).sort((a, b) => b - a)[0];

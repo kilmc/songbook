@@ -4,6 +4,7 @@
   import merge from 'lodash.merge';
   import AddTracks from './AddTracks.svelte';
   import Tracks from "./tracks/Tracks.svelte";
+  import LyricsView from "./LyricsView.svelte";
 
   let initialLyrics = 'Her name is Noelle\nI had a dream about her';
 
@@ -42,6 +43,8 @@
     <h1>Song: {$song.songTitle}</h1>
     <AddTracks />
     <Tracks />  
+
+    <LyricsView />
   </main>
   <sidebar>
     <div><button class="btn" on:click={clearStorage}>nuke storage</button></div>

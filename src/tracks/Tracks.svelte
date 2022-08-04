@@ -1,16 +1,8 @@
 <script lang="ts">
   import { WHOLE_NOTE_TICKS } from "../constants/midi";
   import { song } from "../stores/songStore";
-  import type { INode, ITrack } from "../types";
   import Track from "./Track.svelte";
-
-  const lastNodePosition = (nodes: INode[]) => nodes
-    .map(node => (node.position + node.duration))
-    .sort((a,b) => b - a)[0]
-
-  const getFarthestNodePosition = (tracks: ITrack[]) => tracks
-    .map(track => lastNodePosition(track.nodes))
-    .sort((a,b) => b - a)[0]
+  import { getFarthestNodePosition } from "./utils";
 
   $: trackWidth = getFarthestNodePosition($song.tracks) + (WHOLE_NOTE_TICKS * 4);
 </script>

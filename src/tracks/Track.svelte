@@ -52,7 +52,8 @@
 
     const updatedTrack = track;
     const positionOccupied = updatedTrack.nodes.filter(node => 
-      (node.position === newNode.position) || getNodeEndPosition(node) === getNodeEndPosition(newNode))
+      (node.position === newNode.position) || 
+      (getNodeEndPosition(node) === getNodeEndPosition(newNode)))
       .length > 0;
 
     if(!positionOccupied) {
