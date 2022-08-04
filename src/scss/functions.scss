@@ -1,0 +1,5 @@
+@import "../scss//variables";
+
+@function getZIndex($item) {
+  @return index($zIndexes, $item);
+}

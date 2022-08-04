@@ -5,12 +5,12 @@
   import type { INode, ITrack } from "../types";  
   import TrackNode from "./TrackNode.svelte";
   import type { TRowDisplayValue } from "./trackPreferences";
-  import { generateCSSVars } from "./utils";
+  import { generateCSSVars, getNodeEndPosition } from "./utils";
   
   export let track: ITrack;
-  export let gridResolution = 1;
+  export let gridResolution = 4;
   export let trackColor = "#bbbbbb";
-  export let gridLineColor = "#888";
+  export let gridLineColor = "#000";
   export let barLineColor = "#000";
   export let barLineOffset = $song.barOffset;
 
@@ -51,21 +51,38 @@
     }
 
     const updatedTrack = track;
-    updatedTrack.nodes.push(newNode);
-    updatedTrack.nodes.sort((a,b)=>(a.position - b.position))
-    track = updatedTrack;
+    const positionOccupied = updatedTrack.nodes.filter(node => 
+      (node.position === newNode.position) || getNodeEndPosition(node) === getNodeEndPosition(newNode))
+      .length > 0;
+
+    if(!positionOccupied) {
+      updatedTrack.nodes.push(newNode);
+      updatedTrack.nodes.sort((a,b)=>(a.position - b.position))
+      track = updatedTrack;
+    }
   }
 
-	$: cssVarStyles = generateCSSVars({
+  const moveTracker = (event) => {
+    const targetClasses = event.target.classList;
+    if (targetClasses.contains('track__node')) {
+      showTracker = false;
+    } else if (targetClasses.contains('track__row')) {
+      showTracker = true;
+    }
+
+    const targetColumnIndex = Math.trunc(event.offsetX/blankDuration);
+    trackerPosition = targetColumnIndex * blankDuration;
+  }
+
+  const handleDeleteNode = (deletionNode: INode) => {
+    track.nodes = track.nodes.filter(node => node.position !== deletionNode.position)
+  };
+
+  $: cssVarStyles = generateCSSVars({
 		'track-color': trackColor,
     'grid-line-color': gridLineColor,
     'bar-line-color': barLineColor,
 	})
-
-  const moveTracker = (event) => {
-    const targetColumnIndex = Math.trunc(event.layerX/blankDuration);
-    trackerPosition = targetColumnIndex*blankDuration;
-  }
 </script>
 
 <div>
@@ -81,19 +98,24 @@
   <div
     class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}"
     style={cssVarStyles}
-    on:click={addNewNode}
-    on:mouseenter={()=>showTracker = true}
-    on:mouseleave={()=>showTracker = false}
+    on:dblclick={addNewNode}
+    on:mouseenter={() => (showTracker = true)}
+    on:mouseleave={() => (showTracker = false)}
     on:mousemove={moveTracker}
   >
+    <div class="track__grid"></div>
     <div class="track__row">
-      {#each track.nodes as node}
-        <TrackNode bind:node gridResolution={gridResolution}/>
+      {#each track.nodes.sort((a,b) => a.position - b.position) as node}
+        <TrackNode 
+          bind:node 
+          gridResolution={gridResolution}
+          onDeleteNode={handleDeleteNode}
+        />
       {/each}    
     </div>
   
     <div class="track__bars"></div>
-    <div class="track__grid"></div>
+    
     {#if showTracker}
       <div class="tracker" style="left: {trackerPosition}px; width: {blankDuration}px;"></div>
     {/if}
@@ -103,7 +125,9 @@
 
 
 <style lang="scss">
-@import "../scss/mixins.scss";
+@import "../scss/mixins";
+@import "../scss/functions";
+
 $row-height: 44px;
 
 .track {
@@ -123,7 +147,7 @@ $row-height: 44px;
   grid-auto-columns: 12px;
   height: $row-height;
   position: relative;
-  z-index: 1;
+  z-index: getZIndex("track__row");
 }
 
 .track__bars {
@@ -132,7 +156,7 @@ $row-height: 44px;
   position: absolute;
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: getZIndex("track__bars");
   pointer-events: none;
 }
 
@@ -140,16 +164,9 @@ $row-height: 44px;
   position: absolute;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: getZIndex("track__grid");
   pointer-events: none;
-}
-
-.track__node {
-  background-color: goldenrod;
-  padding: 0;
-  margin: 0;
-  position: relative;
-  z-index: 1;
+  opacity: 0.15;
 }
 
 $resolutions: 1, 2, 4, 8, 16, 32;
@@ -177,6 +194,6 @@ $barOffset: 2, 4, 8, 16, 32;
   height: 100%;
   background-color: rgba(#FFF,0.5);
   pointer-events: none;
-  z-index: 0;
+  z-index: getZIndex("tracker");
 }
 </style>

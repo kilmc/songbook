@@ -1,4 +1,4 @@
-@import "../scss/variables.scss";
+@import "../scss/variables";
 
 @mixin gridLines($resolution) {
   $grid-division: calc($WHOLE_NOTE_TICKS / $resolution);

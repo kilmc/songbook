@@ -4,32 +4,41 @@
   import { draggable } from '@neodrag/svelte';
   import type { DragOptions } from '@neodrag/svelte';
   import { WHOLE_NOTE_TICKS } from "../constants/midi";
+  import {shortcut} from '../keyboardShortcuts';
   
   export let gridResolution: number = 4;
   export let node: INode;
+  export let onDeleteNode: (delectionNode: INode) => void;
   let isEditing = false;
+  let isSelected = false;
 
   const toggleEditOn = (event) => {
     event.stopPropagation();
+    // event.target.focus()
+    isSelected = false;
     isEditing = true;
-    const inputEl = document.querySelector('track__node input');
-    console.log(inputEl)
   }
   
   const editNode = (event: Event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
-
+    
     const updatedNode = node;
     updatedNode.data = event.target.value;
     node = updatedNode;
-    // isEditing = false;
+    isEditing = false;
+    isSelected = false;
+  }
+
+  const toggleSelectNode = (event) => {
+    event.stopPropagation();
+    isSelected = !isSelected;
   }
 
   let options: DragOptions = {
     axis: "x",
     grid: [WHOLE_NOTE_TICKS / gridResolution,0],
     onDragEnd: (data) => {
-      console.log(data.offsetX)
+      node.position = node.position + data.offsetX
     }
   };
   
@@ -38,27 +47,43 @@
   }
 </script>
 
-<span use:draggable={options} class="track__node" style="{getGridColumn(node)}" on:click={toggleEditOn}>
+<div
+  use:draggable={options}
+  class="track__node"
+  class:track__node--selected={isSelected}
+  style="{getGridColumn(node)}"
+  on:click={toggleSelectNode}
+  on:dblclick={toggleEditOn}
+  use:shortcut={{ code: "Backspace", callback: () => isSelected ? onDeleteNode(node) : undefined }}
+>
   {#if isEditing}
-    <input type="text" on:change={editNode} on:blur={editNode} value={node.data} use:init />
+    <input
+      type="text"
+      on:change={editNode}
+      on:blur={editNode}
+      value={node.data}
+      use:init
+    />
   {:else}
     {node.data}
   {/if}
-</span>
+</div>
 
 <style lang="scss">
-span {
-  background-color: goldenrod;
-}
-
-.track__node--blank {
-  background-color: transparent;
-}
-
 .track__node {
+  background-color: goldenrod;
   display: block;
   height: 100%;
   padding: 0.5rem;
+  
+  &--selected {
+    opacity: 0.75;
+  }
+  
+  &:focus {
+    outline: 3px;
+  }
+  
 
   input {
     width: 100%;

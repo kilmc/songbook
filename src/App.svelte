@@ -34,8 +34,7 @@
 
   const clearStorage = () => {
     song.set(emptySong)
-  }
-  
+  } 
 </script>
 
 <div class="songbook-container">
@@ -64,5 +63,4 @@
   width: 100%;
   overflow:hidden;
 }
-
 </style>
