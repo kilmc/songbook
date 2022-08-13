@@ -5,6 +5,7 @@
   import AddTracks from './AddTracks.svelte';
   import Tracks from "./tracks/Tracks.svelte";
   import LyricsView from "./LyricsView.svelte";
+  import VerticalView from "./VerticalView.svelte";
 
   let initialLyrics = 'Her name is Noelle\nI had a dream about her';
 
@@ -40,11 +41,12 @@
 
 <div class="songbook-container">
   <main class="song">
-    <h1>Song: {$song.songTitle}</h1>
-    <AddTracks />
+    <!-- <h1>Song: {$song.songTitle}</h1> -->
+    <!-- <AddTracks />
     <Tracks />  
 
-    <LyricsView />
+    <LyricsView /> -->
+    <VerticalView />
   </main>
   <sidebar>
     <div><button class="btn" on:click={clearStorage}>nuke storage</button></div>

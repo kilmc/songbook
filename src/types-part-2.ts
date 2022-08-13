@@ -1,29 +1,31 @@
-interface INode {
+export interface INode {
   position: number;
   duration: number;
   data: string;
 }
 
-interface IVocalMelodyNode extends INode {
+export interface IVocalMelodyNode extends INode {
   lyricSlice: string;
 }
 
-interface ILeadVocalTrack {
+export interface ILeadVocalTrack {
   lyric: string;
-  melodyNodes: IVocalMelodyNode[];
+  melodyNodes?: IVocalMelodyNode[];
 }
 
-interface IChordNode extends INode {
-  rhtyhmNodes: INode[];
+export interface IChordNode extends INode {
+  rhythmNodes?: INode[];
+  charIndex?: number;
 }
 
-interface ISongSegment {
+export interface ISongSegment {
   position: number;
   duration: number;
   chords?: IChordNode[];
   leadVocal?: ILeadVocalTrack;
 }
 
-interface ISong {
+export interface ISong {
+  songTitle: string;
   segments: ISongSegment[];
 }
