@@ -1,13 +1,12 @@
 import { writable } from "svelte/store";
 import type { ISong } from "../types";
 
-const tdb: ISong = {
+const tdb = {
   songTitle: "Teenage Dirtbag",
-  barOffset: 8,
   tracks: [
     {
       type: "lyrics",
-      originalLyric: "Her name is Noelle",
+      barLyric: "Her name is Noelle",
       nodes: [
         { data: "Her", position: 0, duration: 48 },
         { data: "name is No", position: 48, duration: 192 },
@@ -49,7 +48,6 @@ const tdb: ISong = {
 export const emptySong: ISong = {
   songTitle: "Teenage",
   tracks: [],
-  barOffset: 0,
 };
 
 const storedSong = localStorage.getItem("song") || JSON.stringify(emptySong);

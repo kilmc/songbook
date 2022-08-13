@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Note } from "@tonaljs/tonal";
   import { WHOLE_NOTE_TICKS } from "../constants/midi";
-  import { song } from "../stores/songStore";
   import type { INode, ITrack } from "../types";  
   import TrackNode from "./TrackNode.svelte";
   import type { TRowDisplayValue } from "./trackPreferences";
@@ -12,7 +11,6 @@
   export let trackColor = "#bbbbbb";
   export let gridLineColor = "#000";
   export let barLineColor = "#000";
-  export let barLineOffset = $song.barOffset;
 
   let trackerPosition = null;
   let showTracker = false;
@@ -97,7 +95,7 @@
   </div>
   
   <div
-    class="track track--grid-{gridResolution} track--bar-offset-{barLineOffset}"
+    class="track track--grid-{gridResolution}"
     style={cssVarStyles}
     on:dblclick={addNewNode}
     on:mouseenter={() => (showTracker = true)}
@@ -174,18 +172,6 @@ $resolutions: 1, 2, 4, 8, 16, 32;
 @each $size in $resolutions {
   .track--grid-#{$size} .track__grid {
     @include gridLines($size);
-  }
-}
-
-$barOffset: 2, 4, 8, 16, 32;
-@each $size in $barOffset {
-  $value: ($WHOLE_NOTE_TICKS - calc($WHOLE_NOTE_TICKS/$size)) + 0px;
-  .track--bar-offset-#{$size} {
-    .track__bars,    
-    .track__grid {
-      width: calc(100% + $value);
-      left: -$value;
-    }
   }
 }
 

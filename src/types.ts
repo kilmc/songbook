@@ -7,12 +7,11 @@ export interface INode {
 export type TTrackType = "lyrics" | "chords" | "lead-vocal";
 export interface ITrack {
   type: TTrackType;
-  originalLyric?: string;
+  barLyric?: string;
   nodes: INode[];
 }
 export interface ISong {
   songTitle: string;
-  barOffset?: number;
   tracks: ITrack[];
 }
 
