@@ -16,3 +16,24 @@ export interface ISong {
 }
 
 export type TDegree = "I" | "ii" | "iii" | "IV" | "V" | "vi" | "vii";
+
+interface ISketchChord {
+  position: number;
+  data: string;
+}
+
+interface ISketchLine {
+  lyric: string;
+  chords: ISketchChord[];
+}
+
+interface ISketchSection {
+  title: string;
+  lines: ISketchLine[];
+}
+
+export interface ISongSketch {
+  title: string;
+  artist?: string;
+  sections: ISketchSection[];
+}

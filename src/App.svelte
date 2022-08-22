@@ -1,42 +1,43 @@
 <script lang="ts">
   import { WHOLE_NOTE_TICKS } from "./constants/midi";
-  import { emptySong, song } from './stores/songStore'
-  import merge from 'lodash.merge';
-  import AddTracks from './AddTracks.svelte';
+  import { emptySong, song } from "./stores/songStore";
+  import merge from "lodash.merge";
+  import AddTracks from "./AddTracks.svelte";
   import Tracks from "./tracks/Tracks.svelte";
   import LyricsView from "./LyricsView.svelte";
   import VerticalView from "./VerticalView.svelte";
+  import SongSketch from "./SongSketch.svelte";
 
-  let initialLyrics = 'Her name is Noelle\nI had a dream about her';
+  let initialLyrics = "Her name is Noelle\nI had a dream about her";
 
   const generateLyricsTrack = () => {
-    const nodes = initialLyrics
-    .split('\n')
-    .map((node, index)=>{
+    const nodes = initialLyrics.split("\n").map((node, index) => {
       return {
         data: node,
         position: index * WHOLE_NOTE_TICKS,
         duration: WHOLE_NOTE_TICKS,
-      }
+      };
     });
 
-    song.set(merge($song, {
-      tracks: [
-        {
-          type: "lyrics",
-          nodes,
-        }
-      ]
-    }));
-  }
+    song.set(
+      merge($song, {
+        tracks: [
+          {
+            type: "lyrics",
+            nodes,
+          },
+        ],
+      })
+    );
+  };
 
-  song.subscribe(value => {
+  song.subscribe((value) => {
     localStorage.setItem("song", JSON.stringify(value));
-  })
+  });
 
   const clearStorage = () => {
-    song.set(emptySong)
-  } 
+    song.set(emptySong);
+  };
 </script>
 
 <div class="songbook-container">
@@ -46,26 +47,29 @@
     <Tracks />  
 
     <LyricsView /> -->
-    <VerticalView />
+    <!-- <VerticalView /> -->
+    <SongSketch />
   </main>
-  <sidebar>
+  <!-- <sidebar>
     <div><button class="btn" on:click={clearStorage}>nuke storage</button></div>
     <div>
-      <textarea bind:value={initialLyrics}></textarea>
-      <button class="btn" on:click={generateLyricsTrack}>Generate lyrics track</button>
+      <textarea bind:value={initialLyrics} />
+      <button class="btn" on:click={generateLyricsTrack}>
+        Generate lyrics track
+      </button>
     </div>
-  </sidebar>
+  </sidebar> -->
 </div>
 
 <style>
-.songbook-container {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  width: 100vw;
-}
+  .songbook-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100vw;
+  }
 
-.song {
-  width: 100%;
-  overflow:hidden;
-}
+  .song {
+    width: 100%;
+    overflow: hidden;
+  }
 </style>
