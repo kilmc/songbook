@@ -17,17 +17,17 @@ export interface ISong {
 
 export type TDegree = "I" | "ii" | "iii" | "IV" | "V" | "vi" | "vii";
 
-interface ISketchChord {
+export interface ISketchChord {
   position: number;
   data: string;
 }
 
-interface ISketchLine {
+export interface ISketchLine {
   lyric: string;
   chords: ISketchChord[];
 }
 
-interface ISketchSection {
+export interface ISketchSection {
   title: string;
   lines: ISketchLine[];
 }
