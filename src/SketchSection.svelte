@@ -1,11 +1,18 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { tick, createEventDispatcher } from "svelte";
   import type { ISketchLine, ISketchSection } from "./types";
 
   export let section: ISketchSection;
 
   let focusedLine: number = 0;
   let cursorPosition: number;
+  let lineRefs = [];
+
+  const dispatch = createEventDispatcher();
+
+  const handleNewSectionClick = (lineIndex: number) => {
+    dispatch("new", { lineIndex });
+  };
 
   // Focus management
   const focusPrevious = () => {
@@ -90,7 +97,6 @@
   };
 
   const handleLyricKeydown = async (e: KeyboardEvent) => {
-    e.preventDefault();
     const target = e.target as HTMLInputElement;
     const lyrics = section.lines;
     const newLyrics = [...lyrics];
@@ -109,10 +115,12 @@
 
     if (e.key === "Backspace") {
       if (isEmptyLine) {
+        e.preventDefault();
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
         focusPrevious();
       } else if (!isFirstLine && isCursorAtStart) {
+        e.preventDefault();
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
         combineCurrentAndPrevious(newLyrics, target.value);
@@ -123,6 +131,8 @@
     }
 
     if (e.key === "Delete") {
+      e.preventDefault();
+
       if (isEmptyLine) {
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
@@ -141,6 +151,8 @@
     }
 
     if (e.key === "Enter") {
+      e.preventDefault();
+
       if (isCursorAtStart) {
         insertEmptyNext(newLyrics);
         replaceNext(newLyrics, target.value);
@@ -157,24 +169,28 @@
 
     if (e.key === "ArrowUp") {
       if (!isFocusedOnFirstLine) {
+        e.preventDefault();
         focusPreviousAtCursor();
       }
     }
 
     if (e.key === "ArrowLeft") {
       if (!isFocusedOnFirstLine && isCursorAtStart) {
+        e.preventDefault();
         focusPrevious();
       }
     }
 
     if (e.key === "ArrowDown") {
       if (!isFocusedOnLastLine) {
+        e.preventDefault();
         focusNextAtCursor();
       }
     }
 
     if (e.key === "ArrowRight") {
       if (!isFocusedOnLastLine && isCursorAtEnd) {
+        e.preventDefault();
         focusNext();
       }
     }
@@ -191,27 +207,61 @@
     section.lines[focusedLine].lyric = target.value;
   };
 
-  let lineRefs = [];
+  $: buttonsArr = [
+    section.title,
+    ...new Array(section.lines.length - 1).fill(""),
+  ];
 </script>
 
-<div class="sketch__lines">
-  {#each section.lines as line, lineIndex}
-    <div class="sketch__line" data-value={line.lyric}>
-      <input
-        bind:value={line.lyric}
-        bind:this={lineRefs[lineIndex]}
-        on:input={handleInput}
-        on:keydown={handleLyricKeydown}
-        on:focus={(_) => handleLyricFocus(_, lineIndex)}
-      />
-    </div>
-  {/each}
+<div class="sketch__section">
+  <div class="sketch__meta">
+    {#each buttonsArr as line, index}
+      {#if index === 0}
+        <input bind:value={section.title} />
+      {:else}
+        <button on:click={() => handleNewSectionClick(index)}>
+          {line ? line : "Add section"}
+        </button>
+      {/if}
+    {/each}
+  </div>
+  <div class="sketch__lines">
+    {#each section.lines as line, lineIndex}
+      <div class="sketch__line" data-value={line.lyric}>
+        <input
+          bind:value={line.lyric}
+          bind:this={lineRefs[lineIndex]}
+          on:input={handleInput}
+          on:keydown={handleLyricKeydown}
+          on:focus={(_) => handleLyricFocus(_, lineIndex)}
+        />
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style lang="scss">
+  .sketch__section {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 2rem;
+    align-items: baseline;
+
+    &__title {
+      margin: 0;
+      text-transform: uppercase;
+      font-size: 1.25rem;
+    }
+  }
+  .sketch__lines,
+  .sketch__meta {
+    display: grid;
+    grid-auto-rows: 28px;
+    // align-items: flex-start;
+    row-gap: 1rem;
+  }
+
   .sketch__lines {
-    display: flex;
-    flex-direction: column;
     align-items: flex-start;
   }
 
