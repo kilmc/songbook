@@ -3,6 +3,9 @@
   import { sketch } from "./stores/sketchStore";
   import type { ISketchSection } from "./types";
 
+  let focusedIndex: number;
+  let focusedLineIndex: number | undefined = undefined;
+
   sketch.subscribe((value) => {
     localStorage.setItem("sketch", JSON.stringify(value));
   });
@@ -36,6 +39,23 @@
     insertNext(sectionsCopy, currentIndex, newSection);
     $sketch.sections = sectionsCopy;
   };
+
+  const focusPreviousSection = (currentIndex: number) => {
+    console.log("PREVIOUS");
+    if (currentIndex !== 0) {
+      focusedIndex = currentIndex - 1;
+      focusedLineIndex = $sketch.sections[currentIndex - 1].lines.length - 1;
+    }
+  };
+
+  const focusNextSection = (currentIndex: number) => {
+    console.log("NEXT");
+    if (currentIndex !== $sketch.sections.length - 1) {
+      console.log("HERE");
+      focusedIndex = currentIndex + 1;
+      focusedLineIndex = 0;
+    }
+  };
 </script>
 
 <div class="sketch-container">
@@ -43,7 +63,15 @@
     {#each $sketch.sections as section, index}
       <SketchSection
         bind:section
-        on:new={(event) => addNewSection(event, index)}
+        focused={focusedIndex === index}
+        focusedLine={focusedLineIndex}
+        on:new={(e) => addNewSection(e, index)}
+        on:focusPrevious={() => focusPreviousSection(index)}
+        on:focusNext={() => focusNextSection(index)}
+        on:lineFocused={() => {
+          console.log("FOCUSEDLINE");
+          focusedIndex = index;
+        }}
       />
     {/each}
   </div>
@@ -53,6 +81,7 @@
   .sketch-container {
     display: flex;
     flex-direction: column;
+    margin: 4rem auto;
   }
 
   .sketch {

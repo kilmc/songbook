@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { tick, createEventDispatcher } from "svelte";
+  import { tick, createEventDispatcher, afterUpdate } from "svelte";
   import type { ISketchLine, ISketchSection } from "./types";
 
   export let section: ISketchSection;
+  export let focused: boolean;
+  export let focusedLine: number | undefined;
 
-  let focusedLine: number = 0;
   let cursorPosition: number;
   let lineRefs = [];
 
@@ -119,7 +120,7 @@
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
         focusPrevious();
-      } else if (!isFirstLine && isCursorAtStart) {
+      } else if (!isFirstLine && isCursorAtStart && isEmptyLine) {
         e.preventDefault();
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
@@ -168,7 +169,11 @@
     }
 
     if (e.key === "ArrowUp") {
-      if (!isFocusedOnFirstLine) {
+      console.log("UP");
+      if (isFocusedOnFirstLine) {
+        e.preventDefault();
+        dispatch("focusPrevious");
+      } else if (!isFocusedOnFirstLine) {
         e.preventDefault();
         focusPreviousAtCursor();
       }
@@ -182,8 +187,15 @@
     }
 
     if (e.key === "ArrowDown") {
-      if (!isFocusedOnLastLine) {
+      console.log("DOWN", focusedLine);
+      if (isFocusedOnLastLine) {
+        console.log("DOWN");
         e.preventDefault();
+
+        dispatch("focusNext");
+      } else if (!isFocusedOnLastLine) {
+        e.preventDefault();
+
         focusNextAtCursor();
       }
     }
@@ -198,6 +210,7 @@
 
   const handleLyricFocus = (_, lineIndex: number) => {
     focusedLine = lineIndex;
+    dispatch("lineFocused");
   };
 
   const handleInput = (event) => {
@@ -206,6 +219,12 @@
 
     section.lines[focusedLine].lyric = target.value;
   };
+
+  $: {
+    if (focused && focusedLine !== undefined) {
+      lineRefs[focusedLine].focus();
+    }
+  }
 
   $: buttonsArr = [
     section.title,
@@ -217,10 +236,14 @@
   <div class="sketch__meta">
     {#each buttonsArr as line, index}
       {#if index === 0}
-        <input bind:value={section.title} />
+        <input class="sketch__section-title" bind:value={section.title} />
       {:else}
-        <button on:click={() => handleNewSectionClick(index)}>
-          {line ? line : "Add section"}
+        <button
+          class="sketch__add-section"
+          on:click={() => handleNewSectionClick(index)}
+        >
+          <span class="btn-icon" aria-hidden="true">+</span>
+          <span class="sr-only">Add section</span>
         </button>
       {/if}
     {/each}
@@ -246,6 +269,8 @@
     grid-template-columns: max-content 1fr;
     column-gap: 2rem;
     align-items: baseline;
+    margin-bottom: 2rem;
+    justify-items: start;
 
     &__title {
       margin: 0;
@@ -253,11 +278,28 @@
       font-size: 1.25rem;
     }
   }
+
+  .sketch__section-title {
+    text-align: right;
+    border: none;
+  }
+
+  .sketch__add-section {
+    background-color: transparent;
+    padding: 0 0.5rem;
+    justify-self: flex-end;
+    opacity: 0;
+
+    &:hover {
+      background-color: #ddd;
+      opacity: 1;
+    }
+  }
+
   .sketch__lines,
   .sketch__meta {
     display: grid;
     grid-auto-rows: 28px;
-    // align-items: flex-start;
     row-gap: 1rem;
   }
 
@@ -267,6 +309,12 @@
 
   .sketch__line {
     display: inline-grid;
+    input {
+      border: none;
+      &:focus {
+        outline: none;
+      }
+    }
 
     &::after {
       content: attr(data-value) " ";

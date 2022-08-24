@@ -6,14 +6,10 @@ const dirtbag: ISongSketch = {
   artist: "Wheatus",
   sections: [
     {
-      title: "Verse 1",
+      title: "Section",
       lines: [
         {
-          lyric: "Her name is Noelle",
-          chords: [],
-        },
-        {
-          lyric: "I have a dream about her",
+          lyric: "",
           chords: [],
         },
       ],
