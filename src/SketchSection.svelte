@@ -120,7 +120,7 @@
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
         focusPrevious();
-      } else if (!isFirstLine && isCursorAtStart && isEmptyLine) {
+      } else if (!isFirstLine && isCursorAtStart && !isEmptyLine) {
         e.preventDefault();
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
@@ -220,11 +220,11 @@
     section.lines[focusedLine].lyric = target.value;
   };
 
-  $: {
-    if (focused && focusedLine !== undefined) {
-      lineRefs[focusedLine].focus();
-    }
-  }
+  // $: {
+  //   if (focused && focusedLine !== undefined) {
+  //     lineRefs[focusedLine].focus();
+  //   }
+  // }
 
   $: buttonsArr = [
     section.title,
