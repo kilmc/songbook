@@ -107,6 +107,7 @@
     const isEmptyLine = target.value.length === 0;
     const isFirstLine = focusedLine === 0;
     const isLastLine = focusedLine === lyrics.length - 1;
+    const isOnlyLine = lyrics.length === 1;
     const isFocusedOnFirstLine = focusedLine === 0;
     const isFocusedOnLastLine = focusedLine + 1 === lyrics.length;
     const isCursorAtStart = cursorPosition === 0;
@@ -118,7 +119,9 @@
       target.selectionEnd === target.value.length;
 
     if (e.key === "Backspace") {
-      if (isEmptyLine) {
+      if (isEmptyLine && isOnlyLine && isCursorAtStart) {
+        dispatch("delete");
+      } else if (isEmptyLine) {
         e.preventDefault();
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
@@ -130,6 +133,7 @@
         !isEmptyLine
       ) {
         e.preventDefault();
+
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
         combineCurrentAndPrevious(newLyrics, target.value);
@@ -140,9 +144,8 @@
     }
 
     if (e.key === "Delete") {
-      e.preventDefault();
-
       if (isEmptyLine) {
+        e.preventDefault();
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
 
@@ -152,6 +155,7 @@
           focusCurrentStart();
         }
       } else if (!isLastLine && isCursorAtEnd) {
+        e.preventDefault();
         combineNextAndCurrent(newLyrics, target.value);
         deleteNext(newLyrics);
         await updateLyrics(newLyrics);
@@ -177,7 +181,6 @@
     }
 
     if (e.key === "ArrowUp") {
-      console.log("UP");
       if (isFocusedOnFirstLine) {
         e.preventDefault();
         dispatch("focusPrevious");
@@ -195,9 +198,7 @@
     }
 
     if (e.key === "ArrowDown") {
-      console.log("DOWN", focusedLine);
       if (isFocusedOnLastLine) {
-        console.log("DOWN");
         e.preventDefault();
 
         dispatch("focusNext");
@@ -238,7 +239,9 @@
 
   $: buttonsArr = [
     section.title,
-    ...new Array(section.lines.length - 1).fill(""),
+    ...new Array(section.lines.length > 0 ? section.lines.length - 1 : 1).fill(
+      ""
+    ),
   ];
 </script>
 

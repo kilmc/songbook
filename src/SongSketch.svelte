@@ -40,8 +40,15 @@
     $sketch.sections = sectionsCopy;
   };
 
+  const deleteSection = (event, currentIndex: number) => {
+    if (currentIndex !== 0) {
+      let sectionsCopy = [...$sketch.sections];
+      sectionsCopy.splice(currentIndex, 1);
+      $sketch.sections = sectionsCopy;
+    }
+  };
+
   const focusPreviousSection = (currentIndex: number) => {
-    console.log("PREVIOUS");
     if (currentIndex !== 0) {
       focusedIndex = currentIndex - 1;
       focusedLineIndex = $sketch.sections[currentIndex - 1].lines.length - 1;
@@ -49,9 +56,7 @@
   };
 
   const focusNextSection = (currentIndex: number) => {
-    console.log("NEXT");
     if (currentIndex !== $sketch.sections.length - 1) {
-      console.log("HERE");
       focusedIndex = currentIndex + 1;
       focusedLineIndex = 0;
     }
@@ -66,6 +71,7 @@
         focused={focusedIndex === index}
         focusedLine={focusedLineIndex}
         on:new={(e) => addNewSection(e, index)}
+        on:delete={(e) => deleteSection(e, index)}
         on:focusPrevious={() => focusPreviousSection(index)}
         on:focusNext={() => focusNextSection(index)}
         on:lineFocused={() => {
