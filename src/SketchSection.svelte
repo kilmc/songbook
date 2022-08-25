@@ -220,11 +220,13 @@
     section.lines[focusedLine].lyric = target.value;
   };
 
-  // $: {
-  //   if (focused && focusedLine !== undefined) {
-  //     lineRefs[focusedLine].focus();
-  //   }
-  // }
+  $: onSectionFocusChange(focused);
+
+  function onSectionFocusChange(xFocused) {
+    if (xFocused && focusedLine !== undefined) {
+      lineRefs[focusedLine].focus();
+    }
+  }
 
   $: buttonsArr = [
     section.title,
@@ -282,6 +284,10 @@
   .sketch__section-title {
     text-align: right;
     border: none;
+
+    &:focus {
+      outline: none;
+    }
   }
 
   .sketch__add-section {

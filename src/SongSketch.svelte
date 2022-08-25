@@ -69,7 +69,6 @@
         on:focusPrevious={() => focusPreviousSection(index)}
         on:focusNext={() => focusNextSection(index)}
         on:lineFocused={() => {
-          console.log("FOCUSEDLINE");
           focusedIndex = index;
         }}
       />
