@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick, createEventDispatcher, afterUpdate } from "svelte";
+  import { tick, createEventDispatcher } from "svelte";
   import type { ISketchLine, ISketchSection } from "./types";
 
   export let section: ISketchSection;
@@ -113,6 +113,9 @@
     const isCursorAtEnd = cursorPosition === target.value.length;
     const isCursorBetween =
       cursorPosition > 0 && cursorPosition < target.value.length - 1;
+    const isLineSelected =
+      target.selectionStart === 0 &&
+      target.selectionEnd === target.value.length;
 
     if (e.key === "Backspace") {
       if (isEmptyLine) {
@@ -120,7 +123,12 @@
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
         focusPrevious();
-      } else if (!isFirstLine && isCursorAtStart && !isEmptyLine) {
+      } else if (
+        !isLineSelected &&
+        !isFirstLine &&
+        isCursorAtStart &&
+        !isEmptyLine
+      ) {
         e.preventDefault();
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
