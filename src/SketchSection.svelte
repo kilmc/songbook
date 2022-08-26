@@ -105,33 +105,33 @@
 
     cursorPosition = target.selectionStart;
 
-    const isEmptyLine = target.value.length === 0;
-    const isFirstLine = focusedLine === 0;
-    const isLastLine = focusedLine === lyrics.length - 1;
-    const isOnlyLine = lyrics.length === 1;
-    const isFocusedOnFirstLine = focusedLine === 0;
-    const isFocusedOnLastLine = focusedLine + 1 === lyrics.length;
-    const isCursorAtStart = cursorPosition === 0;
-    const isCursorAtEnd = cursorPosition === target.value.length;
-    const isCursorBetween =
+    const emptyLine = target.value.length === 0;
+    const firstLine = focusedLine === 0;
+    const lastLine = focusedLine === lyrics.length - 1;
+    const onlyLine = lyrics.length === 1;
+    const focusedOnFirstLine = focusedLine === 0;
+    const focusedOnLastLine = focusedLine + 1 === lyrics.length;
+    const cursorAtStart = cursorPosition === 0;
+    const cursorAtEnd = cursorPosition === target.value.length;
+    const cursorBetween =
       cursorPosition > 0 && cursorPosition < target.value.length - 1;
-    const isLineSelected =
+    const lineFullySelected =
       target.selectionStart === 0 &&
       target.selectionEnd === target.value.length;
 
     if (e.key === "Backspace") {
-      if (isEmptyLine && isOnlyLine && isCursorAtStart) {
+      if (emptyLine && onlyLine && cursorAtStart) {
         dispatch("delete");
-      } else if (isEmptyLine) {
+      } else if (emptyLine) {
         e.preventDefault();
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
         focusPrevious();
       } else if (
-        !isLineSelected &&
-        !isFirstLine &&
-        isCursorAtStart &&
-        !isEmptyLine
+        !lineFullySelected &&
+        !firstLine &&
+        cursorAtStart &&
+        !emptyLine
       ) {
         e.preventDefault();
 
@@ -145,7 +145,7 @@
     }
 
     if (e.key === "Delete") {
-      if (isEmptyLine) {
+      if (emptyLine) {
         e.preventDefault();
         deleteCurrent(newLyrics);
         await updateLyrics(newLyrics);
@@ -155,7 +155,7 @@
         } else {
           focusCurrentStart();
         }
-      } else if (!isLastLine && isCursorAtEnd) {
+      } else if (!lastLine && cursorAtEnd) {
         e.preventDefault();
         combineNextAndCurrent(newLyrics, target.value);
         deleteNext(newLyrics);
@@ -167,10 +167,10 @@
     if (e.key === "Enter") {
       e.preventDefault();
 
-      if (isCursorAtStart) {
+      if (cursorAtStart) {
         insertEmptyNext(newLyrics);
         replaceNext(newLyrics, target.value);
-      } else if (isCursorBetween) {
+      } else if (cursorBetween) {
         splitCurrent(newLyrics, target.value);
         replaceNext(newLyrics, target.value.substring(cursorPosition));
       } else {
@@ -182,28 +182,28 @@
     }
 
     if (e.key === "ArrowUp") {
-      if (isFocusedOnFirstLine) {
+      if (focusedOnFirstLine) {
         e.preventDefault();
         dispatch("focusPrevious", { cursorPosition });
-      } else if (!isFocusedOnFirstLine) {
+      } else if (!focusedOnFirstLine) {
         e.preventDefault();
         focusPreviousAtCursor();
       }
     }
 
     if (e.key === "ArrowLeft") {
-      if (!isFocusedOnFirstLine && isCursorAtStart) {
+      if (!focusedOnFirstLine && cursorAtStart) {
         e.preventDefault();
         focusPrevious();
       }
     }
 
     if (e.key === "ArrowDown") {
-      if (isFocusedOnLastLine) {
+      if (focusedOnLastLine) {
         e.preventDefault();
 
         dispatch("focusNext", { cursorPosition });
-      } else if (!isFocusedOnLastLine) {
+      } else if (!focusedOnLastLine) {
         e.preventDefault();
 
         focusNextAtCursor();
@@ -211,7 +211,7 @@
     }
 
     if (e.key === "ArrowRight") {
-      if (!isFocusedOnLastLine && isCursorAtEnd) {
+      if (!focusedOnLastLine && cursorAtEnd) {
         e.preventDefault();
         focusNext();
       }
