@@ -10,7 +10,7 @@ const dirtbag: ISongSketch = {
       lines: [
         {
           lyric: "",
-          chords: [],
+          chords: "",
         },
       ],
     },

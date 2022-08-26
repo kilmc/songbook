@@ -5,8 +5,8 @@
   export let section: ISketchSection;
   export let focused: boolean;
   export let focusedLine: number | undefined;
+  export let cursorPosition: number;
 
-  let cursorPosition: number;
   let lineRefs = [];
 
   const dispatch = createEventDispatcher();
@@ -60,7 +60,7 @@
   const splitCurrent = (newLyrics: ISketchLine[], current: string) => {
     newLyrics.splice(focusedLine, 1, {
       lyric: current.substring(0, cursorPosition),
-      chords: [],
+      chords: "",
     });
   };
 
@@ -70,7 +70,7 @@
   ) => {
     newLyrics.splice(focusedLine - 1, 1, {
       lyric: section.lines[focusedLine - 1].lyric + currentLyric,
-      chords: [],
+      chords: "",
     });
   };
 
@@ -80,16 +80,16 @@
   ) => {
     newLyrics.splice(focusedLine, 1, {
       lyric: currentLyric + section.lines[focusedLine + 1].lyric,
-      chords: [],
+      chords: "",
     });
   };
 
   const insertEmptyNext = (newLyrics: ISketchLine[]) => {
-    newLyrics.splice(focusedLine, 1, { lyric: "", chords: [] });
+    newLyrics.splice(focusedLine, 1, { lyric: "", chords: "" });
   };
 
   const replaceNext = (newLyrics: ISketchLine[], content: string) => {
-    newLyrics.splice(focusedLine + 1, 0, { lyric: content, chords: [] });
+    newLyrics.splice(focusedLine + 1, 0, { lyric: content, chords: "" });
   };
 
   const updateLyrics = async (newLyrics: ISketchLine[]) => {
@@ -98,6 +98,7 @@
   };
 
   const handleLyricKeydown = async (e: KeyboardEvent) => {
+    console.log(e.key);
     const target = e.target as HTMLInputElement;
     const lyrics = section.lines;
     const newLyrics = [...lyrics];
@@ -183,7 +184,7 @@
     if (e.key === "ArrowUp") {
       if (isFocusedOnFirstLine) {
         e.preventDefault();
-        dispatch("focusPrevious");
+        dispatch("focusPrevious", { cursorPosition });
       } else if (!isFocusedOnFirstLine) {
         e.preventDefault();
         focusPreviousAtCursor();
@@ -201,7 +202,7 @@
       if (isFocusedOnLastLine) {
         e.preventDefault();
 
-        dispatch("focusNext");
+        dispatch("focusNext", { cursorPosition });
       } else if (!isFocusedOnLastLine) {
         e.preventDefault();
 
@@ -233,7 +234,7 @@
 
   function onSectionFocusChange(xFocused) {
     if (xFocused && focusedLine !== undefined) {
-      lineRefs[focusedLine].focus();
+      lineRefs[focusedLine].setSelectionRange(cursorPosition, cursorPosition);
     }
   }
 
@@ -264,12 +265,14 @@
   <div class="sketch__lines">
     {#each section.lines as line, lineIndex}
       <div class="sketch__line" data-value={line.lyric}>
+        <!-- <input class="sketch__line__chord" bind:value={line.chords} /> -->
         <input
           bind:value={line.lyric}
           bind:this={lineRefs[lineIndex]}
           on:input={handleInput}
           on:keydown={handleLyricKeydown}
           on:focus={(_) => handleLyricFocus(_, lineIndex)}
+          class="sketch__line__lyric"
         />
       </div>
     {/each}
@@ -306,6 +309,7 @@
     padding: 0 0.5rem;
     justify-self: flex-end;
     opacity: 0;
+    transition: opacity 0.1s ease-in;
 
     &:hover {
       background-color: #ddd;
@@ -338,5 +342,9 @@
       visibility: hidden;
       white-space: pre-wrap;
     }
+  }
+
+  .sketch__line__chord {
+    background-color: #eee;
   }
 </style>

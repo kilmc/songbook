@@ -24,7 +24,7 @@ export interface ISketchChord {
 
 export interface ISketchLine {
   lyric: string;
-  chords: ISketchChord[];
+  chords: string;
 }
 
 export interface ISketchSection {

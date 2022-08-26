@@ -1,0 +1,3 @@
+export const chordRegExp = new RegExp(
+  /((?:[A-G])(?:#|b)?(?:m)?(?:sus)?(?:\d)?(?:\s|\n|$))/
+);
