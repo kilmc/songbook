@@ -15,81 +15,102 @@
     dispatch("new", { lineIndex });
   };
 
-  // Focus management
-  const focusPrevious = () => {
-    lineRefs[focusedLine - 1].focus();
+  type TMoves = "next" | "current" | "previous";
+  type IMoveMap = {
+    [k in TMoves]: number;
   };
+  const generateMoveMap = (): IMoveMap => ({
+    next: focusedLine + 1,
+    current: focusedLine,
+    previous: focusedLine - 1,
+  });
 
-  const focusNext = () => {
-    lineRefs[focusedLine + 1].focus();
-  };
+  type TCursorPosition = "start" | "current" | "end";
 
-  const focusCurrentAtCursor = () => {
-    lineRefs[focusedLine].setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-  const focusPreviousAtCursor = () => {
-    lineRefs[focusedLine - 1].setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-  const focusNextAtCursor = () => {
-    lineRefs[focusedLine + 1].setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-  const focusPreviousAtEnd = (previousEnd: number) => {
-    lineRefs[focusedLine - 1].setSelectionRange(previousEnd, previousEnd);
-  };
-
-  const focusCurrentStart = () => {
-    lineRefs[focusedLine].setSelectionRange(0, 0);
-  };
-
-  const focusNextStart = () => {
-    lineRefs[focusedLine + 1].setSelectionRange(0, 0);
-  };
-
-  // Line deletion
-  const deleteCurrent = (newLyrics: ISketchLine[]) => {
-    newLyrics.splice(focusedLine, 1);
-  };
-
-  const deleteNext = (newLyrics: ISketchLine[]) => {
-    newLyrics.splice(focusedLine + 1, 1);
-  };
-
-  const splitCurrent = (newLyrics: ISketchLine[], current: string) => {
-    newLyrics.splice(focusedLine, 1, {
-      lyric: current.substring(0, cursorPosition),
-      chords: "",
-    });
-  };
-
-  const combineCurrentAndPrevious = (
-    newLyrics: ISketchLine[],
-    currentLyric: string
+  const focusAtCursor = (
+    move: TMoves,
+    position: TCursorPosition,
+    posOverride?: number
   ) => {
-    newLyrics.splice(focusedLine - 1, 1, {
-      lyric: section.lines[focusedLine - 1].lyric + currentLyric,
-      chords: "",
-    });
+    const moveMap = generateMoveMap();
+    const hasPrevious = section.lines[moveMap["previous"]] !== undefined;
+    const previousEnd = hasPrevious
+      ? section.lines[moveMap["previous"]].lyric.length
+      : 0;
+
+    const positionMap: { [k in TCursorPosition]: number } = {
+      start: 0,
+      current: cursorPosition,
+      end: previousEnd,
+    };
+
+    const newPosition = posOverride ? posOverride : positionMap[position];
+    lineRefs[moveMap[move]].setSelectionRange(newPosition, newPosition);
   };
 
-  const combineNextAndCurrent = (
-    newLyrics: ISketchLine[],
-    currentLyric: string
+  type TLyricActions = "delete" | "insert" | "replace" | "split" | "combine";
+
+  const actionMap: { [k in TLyricActions]: number } = {
+    delete: 1,
+    insert: 1,
+    replace: 0,
+    split: 1,
+    combine: 1,
+  };
+
+  const buildLine = (lyric) => ({
+    lyric,
+    chords: "",
+  });
+
+  const generateItemsMap = (lyric: string, moveMap: IMoveMap, move: TMoves) => {
+    return {
+      empty: "",
+      replace: lyric,
+      split: Boolean(lyric) ? lyric.substring(0, cursorPosition) : "",
+      combine: () => {
+        const moveLyric = section.lines[moveMap[move]].lyric;
+        return move === "previous"
+          ? `${moveLyric}${lyric}`
+          : `${lyric}${moveLyric}`;
+      },
+    };
+  };
+
+  const modifyLines = (
+    action: TLyricActions,
+    move: TMoves,
+    newLines: ISketchLine[],
+    lyric?: string
   ) => {
-    newLyrics.splice(focusedLine, 1, {
-      lyric: currentLyric + section.lines[focusedLine + 1].lyric,
-      chords: "",
-    });
-  };
+    const moveMap = generateMoveMap();
+    const itemsMap = generateItemsMap(lyric, moveMap, move);
 
-  const insertEmptyNext = (newLyrics: ISketchLine[]) => {
-    newLyrics.splice(focusedLine, 1, { lyric: "", chords: "" });
-  };
-
-  const replaceNext = (newLyrics: ISketchLine[], content: string) => {
-    newLyrics.splice(focusedLine + 1, 0, { lyric: content, chords: "" });
+    if (
+      (!Boolean(lyric) && action === "insert") ||
+      (!Boolean(lyric) && action === "replace")
+    ) {
+      newLines.splice(
+        moveMap[move],
+        actionMap[action],
+        buildLine(itemsMap["empty"])
+      );
+    } else if (action === "combine") {
+      const newMove = move === "next" ? "current" : move;
+      newLines.splice(
+        moveMap[newMove],
+        actionMap[action],
+        buildLine(itemsMap[action]())
+      );
+    } else if (action === "delete") {
+      newLines.splice(moveMap[move], actionMap[action]);
+    } else {
+      newLines.splice(
+        moveMap[move],
+        actionMap[action],
+        buildLine(itemsMap[action])
+      );
+    }
   };
 
   const updateLyrics = async (newLyrics: ISketchLine[]) => {
@@ -98,7 +119,6 @@
   };
 
   const handleLyricKeydown = async (e: KeyboardEvent) => {
-    console.log(e.key);
     const target = e.target as HTMLInputElement;
     const lyrics = section.lines;
     const newLyrics = [...lyrics];
@@ -124,9 +144,9 @@
         dispatch("delete");
       } else if (emptyLine) {
         e.preventDefault();
-        deleteCurrent(newLyrics);
+        modifyLines("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
-        focusPrevious();
+        focusAtCursor("previous", "end");
       } else if (
         !lineFullySelected &&
         !firstLine &&
@@ -134,33 +154,33 @@
         !emptyLine
       ) {
         e.preventDefault();
-
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
-        combineCurrentAndPrevious(newLyrics, target.value);
-        deleteCurrent(newLyrics);
+        modifyLines("combine", "previous", newLyrics, target.value);
+        modifyLines("delete", "current", newLyrics);
         await updateLyrics(newLyrics);
-        focusPreviousAtEnd(previousLineLength);
+        focusAtCursor("previous", "end", previousLineLength);
       }
     }
 
     if (e.key === "Delete") {
-      if (emptyLine) {
+      if (emptyLine && !lastLine) {
         e.preventDefault();
-        deleteCurrent(newLyrics);
+        modifyLines("delete", "current", newLyrics);
         await updateLyrics(newLyrics);
 
         if (lyrics.length === focusedLine) {
-          focusPrevious();
+          focusAtCursor("previous", "end");
         } else {
-          focusCurrentStart();
+          focusAtCursor("current", "start");
         }
       } else if (!lastLine && cursorAtEnd) {
         e.preventDefault();
-        combineNextAndCurrent(newLyrics, target.value);
-        deleteNext(newLyrics);
+
+        modifyLines("combine", "next", newLyrics, target.value);
+        modifyLines("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
-        focusCurrentAtCursor();
+        focusAtCursor("current", "current");
       }
     }
 
@@ -168,17 +188,22 @@
       e.preventDefault();
 
       if (cursorAtStart) {
-        insertEmptyNext(newLyrics);
-        replaceNext(newLyrics, target.value);
+        modifyLines("insert", "next", newLyrics);
+        modifyLines("replace", "next", newLyrics, target.value);
       } else if (cursorBetween) {
-        splitCurrent(newLyrics, target.value);
-        replaceNext(newLyrics, target.value.substring(cursorPosition));
+        modifyLines("split", "current", newLyrics, target.value);
+        modifyLines(
+          "replace",
+          "next",
+          newLyrics,
+          target.value.substring(cursorPosition)
+        );
       } else {
-        replaceNext(newLyrics, "");
+        modifyLines("replace", "next", newLyrics);
       }
 
       await updateLyrics(newLyrics);
-      focusNextStart();
+      focusAtCursor("next", "start");
     }
 
     if (e.key === "ArrowUp") {
@@ -187,14 +212,14 @@
         dispatch("focusPrevious", { cursorPosition });
       } else if (!focusedOnFirstLine) {
         e.preventDefault();
-        focusPreviousAtCursor();
+        focusAtCursor("previous", "current");
       }
     }
 
     if (e.key === "ArrowLeft") {
       if (!focusedOnFirstLine && cursorAtStart) {
         e.preventDefault();
-        focusPrevious();
+        focusAtCursor("previous", "end");
       }
     }
 
@@ -205,15 +230,14 @@
         dispatch("focusNext", { cursorPosition });
       } else if (!focusedOnLastLine) {
         e.preventDefault();
-
-        focusNextAtCursor();
+        focusAtCursor("next", "current");
       }
     }
 
     if (e.key === "ArrowRight") {
       if (!focusedOnLastLine && cursorAtEnd) {
         e.preventDefault();
-        focusNext();
+        focusAtCursor("next", "start");
       }
     }
   };
