@@ -16,10 +16,10 @@
   };
 
   type TMoves = "next" | "current" | "previous";
-  type IMoveMap = {
+  type Imoves = {
     [k in TMoves]: number;
   };
-  const generateMoveMap = (): IMoveMap => ({
+  const generatemoves = (): Imoves => ({
     next: focusedLine + 1,
     current: focusedLine,
     previous: focusedLine - 1,
@@ -32,10 +32,10 @@
     position: TCursorPosition,
     posOverride?: number
   ) => {
-    const moveMap = generateMoveMap();
-    const hasPrevious = section.lines[moveMap["previous"]] !== undefined;
+    const moves = generatemoves();
+    const hasPrevious = section.lines[moves["previous"]] !== undefined;
     const previousEnd = hasPrevious
-      ? section.lines[moveMap["previous"]].lyric.length
+      ? section.lines[moves["previous"]].lyric.length
       : 0;
 
     const positionMap: { [k in TCursorPosition]: number } = {
@@ -45,12 +45,12 @@
     };
 
     const newPosition = posOverride ? posOverride : positionMap[position];
-    lineRefs[moveMap[move]].setSelectionRange(newPosition, newPosition);
+    lineRefs[moves[move]].setSelectionRange(newPosition, newPosition);
   };
 
   type TLyricActions = "delete" | "insert" | "replace" | "split" | "combine";
 
-  const actionMap: { [k in TLyricActions]: number } = {
+  const actions: { [k in TLyricActions]: number } = {
     delete: 1,
     insert: 1,
     replace: 0,
@@ -63,53 +63,40 @@
     chords: "",
   });
 
-  const generateItemsMap = (lyric: string, moveMap: IMoveMap, move: TMoves) => {
+  const generateLyrics = (lyric: string, moves: Imoves, move: TMoves) => {
     return {
-      empty: "",
-      replace: lyric,
-      split: Boolean(lyric) ? lyric.substring(0, cursorPosition) : "",
+      empty: buildLine(""),
+      replace: buildLine(lyric),
+      split: buildLine(
+        Boolean(lyric) ? lyric.substring(0, cursorPosition) : ""
+      ),
       combine: () => {
-        const moveLyric = section.lines[moveMap[move]].lyric;
-        return move === "previous"
-          ? `${moveLyric}${lyric}`
-          : `${lyric}${moveLyric}`;
+        const moveLyric = section.lines[moves[move]].lyric;
+        return buildLine(
+          move === "previous" ? `${moveLyric}${lyric}` : `${lyric}${moveLyric}`
+        );
       },
     };
   };
 
-  const modifyLines = (
+  const modifyLyrics = (
     action: TLyricActions,
     move: TMoves,
     newLines: ISketchLine[],
     lyric?: string
   ) => {
-    const moveMap = generateMoveMap();
-    const itemsMap = generateItemsMap(lyric, moveMap, move);
+    const moves = generatemoves();
+    const lyrics = generateLyrics(lyric, moves, move);
 
-    if (
-      (!Boolean(lyric) && action === "insert") ||
-      (!Boolean(lyric) && action === "replace")
-    ) {
-      newLines.splice(
-        moveMap[move],
-        actionMap[action],
-        buildLine(itemsMap["empty"])
-      );
+    if (!Boolean(lyric) && (action === "insert" || action === "replace")) {
+      newLines.splice(moves[move], actions[action], lyrics["empty"]);
     } else if (action === "combine") {
       const newMove = move === "next" ? "current" : move;
-      newLines.splice(
-        moveMap[newMove],
-        actionMap[action],
-        buildLine(itemsMap[action]())
-      );
+      newLines.splice(moves[newMove], actions[action], lyrics[action]());
     } else if (action === "delete") {
-      newLines.splice(moveMap[move], actionMap[action]);
+      newLines.splice(moves[move], actions[action]);
     } else {
-      newLines.splice(
-        moveMap[move],
-        actionMap[action],
-        buildLine(itemsMap[action])
-      );
+      newLines.splice(moves[move], actions[action], lyrics[action]);
     }
   };
 
@@ -144,7 +131,7 @@
         dispatch("delete");
       } else if (emptyLine) {
         e.preventDefault();
-        modifyLines("delete", "next", newLyrics);
+        modifyLyrics("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
         focusAtCursor("previous", "end");
       } else if (
@@ -156,8 +143,8 @@
         e.preventDefault();
         const previousLineLength = lyrics[focusedLine - 1].lyric.length;
 
-        modifyLines("combine", "previous", newLyrics, target.value);
-        modifyLines("delete", "current", newLyrics);
+        modifyLyrics("combine", "previous", newLyrics, target.value);
+        modifyLyrics("delete", "current", newLyrics);
         await updateLyrics(newLyrics);
         focusAtCursor("previous", "end", previousLineLength);
       }
@@ -166,7 +153,7 @@
     if (e.key === "Delete") {
       if (emptyLine && !lastLine) {
         e.preventDefault();
-        modifyLines("delete", "current", newLyrics);
+        modifyLyrics("delete", "current", newLyrics);
         await updateLyrics(newLyrics);
 
         if (lyrics.length === focusedLine) {
@@ -177,8 +164,8 @@
       } else if (!lastLine && cursorAtEnd) {
         e.preventDefault();
 
-        modifyLines("combine", "next", newLyrics, target.value);
-        modifyLines("delete", "next", newLyrics);
+        modifyLyrics("combine", "next", newLyrics, target.value);
+        modifyLyrics("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
         focusAtCursor("current", "current");
       }
@@ -188,18 +175,18 @@
       e.preventDefault();
 
       if (cursorAtStart) {
-        modifyLines("insert", "next", newLyrics);
-        modifyLines("replace", "next", newLyrics, target.value);
+        modifyLyrics("insert", "next", newLyrics);
+        modifyLyrics("replace", "next", newLyrics, target.value);
       } else if (cursorBetween) {
-        modifyLines("split", "current", newLyrics, target.value);
-        modifyLines(
+        modifyLyrics("split", "current", newLyrics, target.value);
+        modifyLyrics(
           "replace",
           "next",
           newLyrics,
           target.value.substring(cursorPosition)
         );
       } else {
-        modifyLines("replace", "next", newLyrics);
+        modifyLyrics("replace", "next", newLyrics);
       }
 
       await updateLyrics(newLyrics);
