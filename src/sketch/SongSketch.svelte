@@ -1,7 +1,7 @@
 <script lang="ts">
   import SketchSection from "./SketchSection.svelte";
-  import { sketch } from "./stores/sketchStore";
-  import type { ISketchSection } from "./types";
+  import { sketch } from "../stores/sketchStore";
+  import type { ISketchSection } from "../types";
 
   let focusedIndex: number;
   let focusedLineIndex: number | undefined = undefined;

@@ -6,7 +6,7 @@
   import Tracks from "./tracks/Tracks.svelte";
   import LyricsView from "./LyricsView.svelte";
   import VerticalView from "./VerticalView.svelte";
-  import SongSketch from "./SongSketch.svelte";
+  import SongSketch from "./sketch/SongSketch.svelte";
 
   let initialLyrics = "Her name is Noelle\nI had a dream about her";
 

@@ -1,6 +1,14 @@
 <script lang="ts">
   import { tick, createEventDispatcher } from "svelte";
-  import type { ISketchLine, ISketchSection } from "./types";
+  import type { ISketchLine, ISketchSection } from "../types";
+  import { actions } from "./maps";
+  import type {
+    TMoves,
+    TMovesObj,
+    TCursorPosition,
+    TCursorPositionObj,
+    TLyricActions,
+  } from "./types";
 
   export let section: ISketchSection;
   export let focused: boolean;
@@ -15,30 +23,24 @@
     dispatch("new", { lineIndex });
   };
 
-  type TMoves = "next" | "current" | "previous";
-  type Imoves = {
-    [k in TMoves]: number;
-  };
-  const generatemoves = (): Imoves => ({
+  const generateMoves = (): TMovesObj => ({
     next: focusedLine + 1,
     current: focusedLine,
     previous: focusedLine - 1,
   });
 
-  type TCursorPosition = "start" | "current" | "end";
-
-  const focusAtCursor = (
+  const focusCursor = (
     move: TMoves,
     position: TCursorPosition,
     posOverride?: number
   ) => {
-    const moves = generatemoves();
+    const moves = generateMoves();
     const hasPrevious = section.lines[moves["previous"]] !== undefined;
     const previousEnd = hasPrevious
       ? section.lines[moves["previous"]].lyric.length
       : 0;
 
-    const positionMap: { [k in TCursorPosition]: number } = {
+    const positionMap: TCursorPositionObj = {
       start: 0,
       current: cursorPosition,
       end: previousEnd,
@@ -48,25 +50,16 @@
     lineRefs[moves[move]].setSelectionRange(newPosition, newPosition);
   };
 
-  type TLyricActions = "delete" | "insert" | "replace" | "split" | "combine";
-
-  const actions: { [k in TLyricActions]: number } = {
-    delete: 1,
-    insert: 1,
-    replace: 0,
-    split: 1,
-    combine: 1,
-  };
-
-  const buildLine = (lyric) => ({
+  const buildLine = (lyric: string) => ({
     lyric,
     chords: "",
   });
 
-  const generateLyrics = (lyric: string, moves: Imoves, move: TMoves) => {
+  const generateLyrics = (lyric: string, moves: TMovesObj, move: TMoves) => {
     return {
       empty: buildLine(""),
       replace: buildLine(lyric),
+      insert: buildLine(lyric),
       split: buildLine(
         Boolean(lyric) ? lyric.substring(0, cursorPosition) : ""
       ),
@@ -85,10 +78,11 @@
     newLines: ISketchLine[],
     lyric?: string
   ) => {
-    const moves = generatemoves();
+    const moves = generateMoves();
     const lyrics = generateLyrics(lyric, moves, move);
 
     if (!Boolean(lyric) && (action === "insert" || action === "replace")) {
+      console.log("EMPTY", moves[move], actions[action], lyrics["empty"]);
       newLines.splice(moves[move], actions[action], lyrics["empty"]);
     } else if (action === "combine") {
       const newMove = move === "next" ? "current" : move;
@@ -96,6 +90,7 @@
     } else if (action === "delete") {
       newLines.splice(moves[move], actions[action]);
     } else {
+      console.log("ELSE", moves[move], actions[action], lyrics[action], action);
       newLines.splice(moves[move], actions[action], lyrics[action]);
     }
   };
@@ -133,7 +128,7 @@
         e.preventDefault();
         modifyLyrics("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
-        focusAtCursor("previous", "end");
+        focusCursor("previous", "end");
       } else if (
         !lineFullySelected &&
         !firstLine &&
@@ -146,7 +141,7 @@
         modifyLyrics("combine", "previous", newLyrics, target.value);
         modifyLyrics("delete", "current", newLyrics);
         await updateLyrics(newLyrics);
-        focusAtCursor("previous", "end", previousLineLength);
+        focusCursor("previous", "end", previousLineLength);
       }
     }
 
@@ -157,9 +152,9 @@
         await updateLyrics(newLyrics);
 
         if (lyrics.length === focusedLine) {
-          focusAtCursor("previous", "end");
+          focusCursor("previous", "end");
         } else {
-          focusAtCursor("current", "start");
+          focusCursor("current", "start");
         }
       } else if (!lastLine && cursorAtEnd) {
         e.preventDefault();
@@ -167,7 +162,7 @@
         modifyLyrics("combine", "next", newLyrics, target.value);
         modifyLyrics("delete", "next", newLyrics);
         await updateLyrics(newLyrics);
-        focusAtCursor("current", "current");
+        focusCursor("current", "current");
       }
     }
 
@@ -175,22 +170,23 @@
       e.preventDefault();
 
       if (cursorAtStart) {
-        modifyLyrics("insert", "next", newLyrics);
-        modifyLyrics("replace", "next", newLyrics, target.value);
+        modifyLyrics("replace", "current", newLyrics);
+        modifyLyrics("insert", "next", newLyrics, target.value);
       } else if (cursorBetween) {
         modifyLyrics("split", "current", newLyrics, target.value);
         modifyLyrics(
-          "replace",
+          "insert",
           "next",
           newLyrics,
           target.value.substring(cursorPosition)
         );
       } else {
+        console.log("ELSE");
         modifyLyrics("replace", "next", newLyrics);
       }
 
       await updateLyrics(newLyrics);
-      focusAtCursor("next", "start");
+      focusCursor("next", "start");
     }
 
     if (e.key === "ArrowUp") {
@@ -199,14 +195,14 @@
         dispatch("focusPrevious", { cursorPosition });
       } else if (!focusedOnFirstLine) {
         e.preventDefault();
-        focusAtCursor("previous", "current");
+        focusCursor("previous", "current");
       }
     }
 
     if (e.key === "ArrowLeft") {
       if (!focusedOnFirstLine && cursorAtStart) {
         e.preventDefault();
-        focusAtCursor("previous", "end");
+        focusCursor("previous", "end");
       }
     }
 
@@ -217,14 +213,14 @@
         dispatch("focusNext", { cursorPosition });
       } else if (!focusedOnLastLine) {
         e.preventDefault();
-        focusAtCursor("next", "current");
+        focusCursor("next", "current");
       }
     }
 
     if (e.key === "ArrowRight") {
       if (!focusedOnLastLine && cursorAtEnd) {
         e.preventDefault();
-        focusAtCursor("next", "start");
+        focusCursor("next", "start");
       }
     }
   };
