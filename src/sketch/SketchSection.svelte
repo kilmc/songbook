@@ -99,8 +99,6 @@
   };
 
   const handleLyricKeydown = async (e: KeyboardEvent) => {
-    console.log(focusedLine);
-    console.log(comboRefs);
     const target = e.target as HTMLInputElement;
     const lyrics = section.lines;
     const newLyrics = [...lyrics];
