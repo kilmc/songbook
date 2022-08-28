@@ -82,7 +82,6 @@
     const lyrics = generateLyrics(lyric, moves, move);
 
     if (!Boolean(lyric) && (action === "insert" || action === "replace")) {
-      console.log("EMPTY", moves[move], actions[action], lyrics["empty"]);
       newLines.splice(moves[move], actions[action], lyrics["empty"]);
     } else if (action === "combine") {
       const newMove = move === "next" ? "current" : move;
@@ -90,7 +89,6 @@
     } else if (action === "delete") {
       newLines.splice(moves[move], actions[action]);
     } else {
-      console.log("ELSE", moves[move], actions[action], lyrics[action], action);
       newLines.splice(moves[move], actions[action], lyrics[action]);
     }
   };
@@ -101,22 +99,29 @@
   };
 
   const handleLyricKeydown = async (e: KeyboardEvent) => {
+    console.log(focusedLine);
+    console.log(comboRefs);
     const target = e.target as HTMLInputElement;
     const lyrics = section.lines;
     const newLyrics = [...lyrics];
 
     cursorPosition = target.selectionStart;
 
+    // Line
     const emptyLine = target.value.length === 0;
+
+    // Section
+    const onlyLine = lyrics.length === 1;
     const firstLine = focusedLine === 0;
     const lastLine = focusedLine === lyrics.length - 1;
-    const onlyLine = lyrics.length === 1;
-    const focusedOnFirstLine = focusedLine === 0;
-    const focusedOnLastLine = focusedLine + 1 === lyrics.length;
+
+    // Cursor
     const cursorAtStart = cursorPosition === 0;
     const cursorAtEnd = cursorPosition === target.value.length;
     const cursorBetween =
       cursorPosition > 0 && cursorPosition < target.value.length - 1;
+
+    // Selection
     const lineFullySelected =
       target.selectionStart === 0 &&
       target.selectionEnd === target.value.length;
@@ -181,7 +186,6 @@
           target.value.substring(cursorPosition)
         );
       } else {
-        console.log("ELSE");
         modifyLyrics("replace", "next", newLyrics);
       }
 
@@ -190,35 +194,35 @@
     }
 
     if (e.key === "ArrowUp") {
-      if (focusedOnFirstLine) {
+      if (firstLine) {
         e.preventDefault();
         dispatch("focusPrevious", { cursorPosition });
-      } else if (!focusedOnFirstLine) {
+      } else if (!firstLine) {
         e.preventDefault();
         focusCursor("previous", "current");
       }
     }
 
     if (e.key === "ArrowLeft") {
-      if (!focusedOnFirstLine && cursorAtStart) {
+      if (!firstLine && cursorAtStart) {
         e.preventDefault();
         focusCursor("previous", "end");
       }
     }
 
     if (e.key === "ArrowDown") {
-      if (focusedOnLastLine) {
+      if (lastLine) {
         e.preventDefault();
 
         dispatch("focusNext", { cursorPosition });
-      } else if (!focusedOnLastLine) {
+      } else if (!lastLine) {
         e.preventDefault();
         focusCursor("next", "current");
       }
     }
 
     if (e.key === "ArrowRight") {
-      if (!focusedOnLastLine && cursorAtEnd) {
+      if (!lastLine && cursorAtEnd) {
         e.preventDefault();
         focusCursor("next", "start");
       }
