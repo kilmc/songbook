@@ -48,6 +48,7 @@
 
     const newPosition = posOverride ? posOverride : positionMap[position];
     lineRefs[moves[move]].setSelectionRange(newPosition, newPosition);
+    lineRefs[moves[move]].focus();
   };
 
   const buildLine = (lyric: string) => ({
@@ -124,119 +125,110 @@
       target.selectionStart === 0 &&
       target.selectionEnd === target.value.length;
 
-    if (e.key === "Backspace") {
-      if (emptyLine && onlyLine && cursorAtStart) {
-        dispatch("delete");
-      } else if (emptyLine) {
-        e.preventDefault();
-        modifyLyrics("delete", "next", newLyrics);
-        await updateLyrics(newLyrics);
-        focusCursor("previous", "end");
-      } else if (
-        !lineFullySelected &&
-        !firstLine &&
-        cursorAtStart &&
-        !emptyLine
-      ) {
-        e.preventDefault();
-        const previousLineLength = lyrics[focusedLine - 1].lyric.length;
-
-        modifyLyrics("combine", "previous", newLyrics, target.value);
-        modifyLyrics("delete", "current", newLyrics);
-        await updateLyrics(newLyrics);
-        focusCursor("previous", "end", previousLineLength);
-      }
-    }
-
-    if (e.key === "Delete") {
-      if (emptyLine && !lastLine) {
-        e.preventDefault();
-        modifyLyrics("delete", "current", newLyrics);
-        await updateLyrics(newLyrics);
-
-        if (lyrics.length === focusedLine) {
+    switch (e.key) {
+      case "Backspace":
+        if (emptyLine && onlyLine && cursorAtStart) {
+          dispatch("delete");
+        } else if (emptyLine) {
+          e.preventDefault();
+          modifyLyrics("delete", "next", newLyrics);
+          await updateLyrics(newLyrics);
           focusCursor("previous", "end");
-        } else {
-          focusCursor("current", "start");
+        } else if (
+          !lineFullySelected &&
+          !firstLine &&
+          cursorAtStart &&
+          !emptyLine
+        ) {
+          e.preventDefault();
+          const previousLineLength = lyrics[focusedLine - 1].lyric.length;
+
+          modifyLyrics("combine", "previous", newLyrics, target.value);
+          modifyLyrics("delete", "current", newLyrics);
+          await updateLyrics(newLyrics);
+          focusCursor("previous", "end", previousLineLength);
         }
-      } else if (!lastLine && cursorAtEnd) {
+        break;
+      case "Delete":
+        if (emptyLine && !lastLine) {
+          e.preventDefault();
+          modifyLyrics("delete", "current", newLyrics);
+          await updateLyrics(newLyrics);
+
+          if (lyrics.length === focusedLine) {
+            focusCursor("previous", "end");
+          } else {
+            focusCursor("current", "start");
+          }
+        } else if (!lastLine && cursorAtEnd) {
+          e.preventDefault();
+
+          modifyLyrics("combine", "next", newLyrics, target.value);
+          modifyLyrics("delete", "next", newLyrics);
+          await updateLyrics(newLyrics);
+          focusCursor("current", "current");
+        }
+        break;
+      case "Enter":
         e.preventDefault();
 
-        modifyLyrics("combine", "next", newLyrics, target.value);
-        modifyLyrics("delete", "next", newLyrics);
+        if (cursorAtStart) {
+          modifyLyrics("replace", "current", newLyrics);
+          modifyLyrics("insert", "next", newLyrics, target.value);
+        } else if (cursorBetween) {
+          modifyLyrics("split", "current", newLyrics, target.value);
+          modifyLyrics(
+            "insert",
+            "next",
+            newLyrics,
+            target.value.substring(cursorPosition)
+          );
+        } else {
+          modifyLyrics("insert", "next", newLyrics);
+        }
+
         await updateLyrics(newLyrics);
-        focusCursor("current", "current");
-      }
-    }
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      if (cursorAtStart) {
-        modifyLyrics("replace", "current", newLyrics);
-        modifyLyrics("insert", "next", newLyrics, target.value);
-      } else if (cursorBetween) {
-        modifyLyrics("split", "current", newLyrics, target.value);
-        modifyLyrics(
-          "insert",
-          "next",
-          newLyrics,
-          target.value.substring(cursorPosition)
-        );
-      } else {
-        modifyLyrics("replace", "next", newLyrics);
-      }
-
-      await updateLyrics(newLyrics);
-      focusCursor("next", "start");
-    }
-
-    if (e.key === "ArrowUp") {
-      if (firstLine) {
-        e.preventDefault();
-        dispatch("focusPrevious", { cursorPosition });
-      } else if (!firstLine) {
-        e.preventDefault();
-        focusCursor("previous", "current");
-      }
-    }
-
-    if (e.key === "ArrowLeft") {
-      if (!firstLine && cursorAtStart) {
-        e.preventDefault();
-        focusCursor("previous", "end");
-      }
-    }
-
-    if (e.key === "ArrowDown") {
-      if (lastLine) {
-        e.preventDefault();
-
-        dispatch("focusNext", { cursorPosition });
-      } else if (!lastLine) {
-        e.preventDefault();
-        focusCursor("next", "current");
-      }
-    }
-
-    if (e.key === "ArrowRight") {
-      if (!lastLine && cursorAtEnd) {
-        e.preventDefault();
         focusCursor("next", "start");
-      }
+        break;
+      case "ArrowUp":
+        if (firstLine) {
+          e.preventDefault();
+          dispatch("focusPrevious", { cursorPosition });
+        } else if (!firstLine) {
+          e.preventDefault();
+          focusCursor("previous", "current");
+        }
+        break;
+      case "ArrowLeft":
+        if (!firstLine && cursorAtStart) {
+          e.preventDefault();
+          focusCursor("previous", "end");
+        }
+        break;
+      case "ArrowDown":
+        if (lastLine) {
+          e.preventDefault();
+
+          dispatch("focusNext", { cursorPosition });
+        } else if (!lastLine) {
+          e.preventDefault();
+          focusCursor("next", "current");
+        }
+        break;
+      case "ArrowRight":
+        if (!lastLine && cursorAtEnd) {
+          e.preventDefault();
+          focusCursor("next", "start");
+        }
+        break;
+      default:
+        break;
     }
   };
 
   const handleLyricFocus = (_, lineIndex: number) => {
     focusedLine = lineIndex;
     dispatch("lineFocused");
-  };
-
-  const handleInput = (event) => {
-    const target = event.target as HTMLInputElement;
-    target.parentElement.dataset.value = target.value;
-
-    section.lines[focusedLine].lyric = target.value;
   };
 
   $: onSectionFocusChange(focused);
@@ -273,12 +265,11 @@
   </div>
   <div class="sketch__lines">
     {#each section.lines as line, lineIndex}
-      <div class="sketch__line" data-value={line.lyric}>
-        <!-- <input class="sketch__line__chord" bind:value={line.chords} /> -->
+      <div class="sketch__line" data-value={line.lyric.length > line.chords.length ? line.lyric : line.chords}>
+        <input class="sketch__line__chord" bind:value={line.chords}/>
         <input
           bind:value={line.lyric}
           bind:this={lineRefs[lineIndex]}
-          on:input={handleInput}
           on:keydown={handleLyricKeydown}
           on:focus={(_) => handleLyricFocus(_, lineIndex)}
           class="sketch__line__lyric"
@@ -329,8 +320,8 @@
   .sketch__lines,
   .sketch__meta {
     display: grid;
-    grid-auto-rows: 28px;
-    row-gap: 1rem;
+    grid-auto-rows: 1.6em;
+    row-gap: 1em;
   }
 
   .sketch__lines {
