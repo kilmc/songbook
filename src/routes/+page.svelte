@@ -1,10 +1,12 @@
 <script lang="ts">
-	let song = `Verse 1 ---
-E           A@@@
-Her name is Noelle`;
+  import { song } from '$lib/stores/songStore';
+
+
+
 
 	const sectionIndicator = '---';
 	const chordIndicator = '@@@';
+  let isEditing = true;
 
 	type TLineType = 'section' | 'chord' | 'lyric';
 
@@ -33,27 +35,37 @@ Her name is Noelle`;
 					case 'chord':
 						return `<div>${line.replace(chordIndicator, '')}</div>`;
 					case 'lyric':
-						return `<div>${line}</div>`;
+						return `<div>${line}<br></div>`;
 					default:
-						break;
+            return `<div><br></div>`;
 				}
 			})
 			.join('');
 	};
+
+  const toggleEditor = () => isEditing = !isEditing;
+
+  const handleKeydown = (event) => {
+    event.key === "e" && event.metaKey === true && toggleEditor();
+  } 
 </script>
 
 <svelte:head>
 	<title>Songbook</title>
 </svelte:head>
+<svelte:window on:keydown={handleKeydown}/>
 
 <div class="sketch-container font-mono">
-	<div class="input">
-		<textarea bind:value={song} />
-	</div>
-
-	<div class="output whitespace-pre">
-		{@html parse(song)}
-	</div>
+  <button on:click={toggleEditor}>pencilIcon</button>
+  {#if isEditing}
+    <div class="input">
+      <textarea bind:value={$song} on:blur={toggleEditor}/>
+    </div>
+  {:else}
+    <div class="output whitespace-pre" on:click={toggleEditor}>
+      {@html parse($song)}
+    </div>
+  {/if}
 </div>
 
 <style>
