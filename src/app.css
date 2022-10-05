@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.layout--site {
+	display: grid;
+	grid-template-rows: min-content 1fr;
+}

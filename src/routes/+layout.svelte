@@ -4,6 +4,6 @@
 </script>
 
 <Header />
-<main>
+<main class="bg-slate-900 white">
 	<slot />
 </main>

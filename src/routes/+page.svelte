@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { song } from '$lib/stores/songStore';
-
-
-
+	import { song } from '$lib/stores/songStore';
+	import SongInfoItem from './SongInfoItem.svelte';
 
 	const sectionIndicator = '---';
 	const chordIndicator = '@@@';
-  let isEditing = true;
+	let isEditing = false;
 
 	type TLineType = 'section' | 'chord' | 'lyric';
 
@@ -37,42 +35,46 @@
 					case 'lyric':
 						return `<div>${line}<br></div>`;
 					default:
-            return `<div><br></div>`;
+						return `<div><br></div>`;
 				}
 			})
 			.join('');
 	};
 
-  const toggleEditor = () => isEditing = !isEditing;
+	const toggleEditor = () => (isEditing = !isEditing);
 
-  const handleKeydown = (event) => {
-    event.key === "e" && event.metaKey === true && toggleEditor();
-  } 
+	const handleKeydown = (event: KeyboardEvent) => {
+		event.key === 'e' && event.metaKey === true && toggleEditor();
+	};
 </script>
 
 <svelte:head>
 	<title>Songbook</title>
 </svelte:head>
-<svelte:window on:keydown={handleKeydown}/>
-
-<div class="sketch-container font-mono">
-  <button on:click={toggleEditor}>pencilIcon</button>
-  {#if isEditing}
-    <div class="input">
-      <textarea bind:value={$song} on:blur={toggleEditor}/>
-    </div>
-  {:else}
-    <div class="output whitespace-pre" on:click={toggleEditor}>
-      {@html parse($song)}
-    </div>
-  {/if}
+<svelte:window on:keydown={handleKeydown} />
+<div class="layout--song h-full">
+	<aside class="bg-slate-900 p-10">
+		<SongInfoItem label="Title" value="Teenage Dirtbag" />
+		<SongInfoItem label="Artist" value="Wheatus" />
+		<SongInfoItem label="Key" value="E Major" />
+	</aside>
+	<div class="font-mono bg-slate-800 p-10">
+		{#if isEditing}
+			<div class="w-full h-[80vh]">
+				<textarea class="w-full h-full bg-slate-800" bind:value={$song} on:blur={toggleEditor} />
+			</div>
+		{:else}
+			<div class="w-full whitespace-pre" on:click={toggleEditor}>
+				{@html parse($song)}
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>
-	.sketch-container {
-		display: flex;
-		flex-direction: column;
-		margin: 4rem auto;
+	.layout--song {
+		display: grid;
+		grid-template-columns: max-content 1fr;
 	}
 
 	.sketch {
