@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { ISong, TSong } from '../types';
 
+
 const dirtbag: TSong = `Verse 1 ---
 E           A@@@
 Her name is Noelle`;
@@ -33,15 +34,6 @@ const defaultSong: ISong = {
 	src: dirtbag
 };
 
-const storedSong =
-	browser && localStorage.getItem('song')
-		? JSON.parse(localStorage.getItem('song') || '')
-		: defaultSong;
 
-export const song = writable<ISong>(storedSong);
 
-if (browser) {
-	song.subscribe((value) => {
-		localStorage.setItem('song', JSON.stringify(value));
-	});
-}
+export const song = writable<ISong>();

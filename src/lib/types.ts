@@ -1,4 +1,6 @@
-export type TSong = string;
+import { Prisma } from '@prisma/client';
+
+export type TSong = Prisma.SongGetPayload<Record<string, unknown>>;
 
 export interface ISongMeta {
 	title: string;
